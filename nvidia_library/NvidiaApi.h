@@ -14,9 +14,9 @@ public:
     int getGPUCount();
     std::shared_ptr<NvidiaGPU> getGPU(int index);
 private:
-    bool GPUloaded = false;
     std::vector<std::shared_ptr<NvidiaGPU>> gpus;
     bool ensureGPUsLoaded();
+    bool GPUloaded = false;
 };
 
 class NVLIB_EXPORTED NvidiaGPU
