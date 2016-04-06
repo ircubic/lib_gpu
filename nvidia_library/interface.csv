@@ -3,8 +3,8 @@ D22BDD7E,NvidiaUnload,
 0E5AC921F,GetPhysicalGPUHandles,NV_PHYSICAL_GPU_HANDLE* handle_buf,unsigned long* handle_count
 01053FA5,GetVersionString,char * string
 0E5AC921F,GetGPUIDFromPhysicalGPU,NV_PHYSICAL_GPU_HANDLE handle,unsigned long* gpu_id
-6FF81213,GetPstates20,NV_PHYSICAL_GPU_HANDLE handle,struct NVIDIA_GPU_PSTATES20_V1* pstates
-0F4DAE6B,SetPstates20,NV_PHYSICAL_GPU_HANDLE handle,struct NVIDIA_GPU_PSTATES20_V1* pstates
+6FF81213,GetPstates20,NV_PHYSICAL_GPU_HANDLE handle,struct NVIDIA_GPU_PSTATES20_V2* pstates
+0F4DAE6B,SetPstates20,NV_PHYSICAL_GPU_HANDLE handle,struct NVIDIA_GPU_PSTATES20_V2* pstates
 DCB616C3,GetAllClockFrequencies,NV_PHYSICAL_GPU_HANDLE handle, struct NVIDIA_CLOCK_FREQUENCIES* frequencies
 60DED2ED,GetDynamicPStates,NV_PHYSICAL_GPU_HANDLE handle, struct NVIDIA_DYNAMIC_PSTATES* dynamic_pstates
 1EA54A3B,GetPerfClocks,NV_PHYSICAL_GPU_HANDLE handle,unsigned long entry, NVIDIA_GPU_PERF_TABLE* perf_table

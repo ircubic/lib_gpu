@@ -12,7 +12,7 @@ int main()
     struct nvidia_simple_clocks clocks = get_clocks();
     struct nvidia_simple_usages usages = get_usages();
     struct nvidia_simple_overclock_profile profile = get_overclock_profile();
-    bool overclock_success = overclock(125, NVIDIA_CLOCK_SYSTEM_GPU);
+    //bool overclock_success = overclock(140, NVIDIA_CLOCK_SYSTEM_GPU);
 
     std::cout << "GPU Clock: " << clocks.coreClock << std::endl << "Mem Clock: " << clocks.memoryClock << std::endl << "Usage: " << usages.gpuUsage << "%" << std::endl;
 

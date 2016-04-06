@@ -27,6 +27,8 @@ extern "C" {
     struct NVLIB_EXPORTED nvidia_simple_overclock_profile
     {
         struct nvidia_simple_overclock_setting coreOverclock;
+        struct nvidia_simple_overclock_setting memoryOverclock;
+        struct nvidia_simple_overclock_setting shaderOverclock;
     };
 
     NVLIB_EXPORTED bool init_simple_api();
