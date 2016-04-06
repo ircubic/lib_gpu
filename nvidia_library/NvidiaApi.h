@@ -26,10 +26,14 @@ public:
     float getCoreClock();
     float getMemoryClock();
     float getGPUUsage();
+    float getFBUsage();
+    float getVidUsage();
+    float getBusUsage();
 private:
     NV_PHYSICAL_GPU_HANDLE handle;
     NvidiaGPU(NV_PHYSICAL_GPU_HANDLE handle);
     struct NVIDIA_CLOCK_FREQUENCIES frequencies;
     bool reloadFrequencies();
     float getClockForSystem(NVIDIA_CLOCK_SYSTEM system);
+    float getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM system);
 };

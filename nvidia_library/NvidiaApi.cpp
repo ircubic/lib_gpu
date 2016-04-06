@@ -91,17 +91,38 @@ float NvidiaGPU::getMemoryClock()
     return this->getClockForSystem(NVIDIA_CLOCK_SYSTEM_MEMORY);
 }
 
-float NvidiaGPU::getGPUUsage()
+float NvidiaGPU::getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM system)
 {
     struct NVIDIA_DYNAMIC_PSTATES pstates;
-    INIT_NVIDIA_STRUCT(pstates, 1);
+    REINIT_NVIDIA_STRUCT(pstates);
     if (NVIDIA_RAW_GetDynamicPStates(this->handle, &pstates) == NVAPI_OK) {
-        if (pstates.pstates[NVIDIA_DYNAMIC_PSTATES_SYSTEM_GPU].present) {
-            return pstates.pstates[NVIDIA_DYNAMIC_PSTATES_SYSTEM_GPU].value;
+        auto state = pstates.pstates[system];
+        if (state.present) {
+            return state.value;
         }
     }
 
     return -1;
+}
+
+float NvidiaGPU::getGPUUsage()
+{
+    return this->getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_GPU);
+}
+
+float NvidiaGPU::getFBUsage()
+{
+    return this->getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_FB);
+}
+
+float NvidiaGPU::getVidUsage()
+{
+    return this->getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_VID);
+}
+
+float NvidiaGPU::getBusUsage()
+{
+    return this->getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_BUS);
 }
 
 NvidiaGPU::NvidiaGPU(NV_PHYSICAL_GPU_HANDLE handle)

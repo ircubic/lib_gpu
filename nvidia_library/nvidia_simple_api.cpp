@@ -49,6 +49,9 @@ struct nvidia_simple_usages get_usages()
     if (ensureApi()) {
         auto gpu = api->getGPU(0);
         usages.gpuUsage = gpu->getGPUUsage();
+        usages.fbUsage = gpu->getFBUsage();
+        usages.vidUsage = gpu->getVidUsage();
+        usages.busUsage = gpu->getBusUsage();
     }
 
     return usages;
