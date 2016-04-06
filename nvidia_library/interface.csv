@@ -8,3 +8,5 @@ D22BDD7E,NvidiaUnload,
 DCB616C3,GetAllClockFrequencies,NV_PHYSICAL_GPU_HANDLE handle, struct NVIDIA_CLOCK_FREQUENCIES* frequencies
 60DED2ED,GetDynamicPStates,NV_PHYSICAL_GPU_HANDLE handle, struct NVIDIA_DYNAMIC_PSTATES* dynamic_pstates
 1EA54A3B,GetPerfClocks,NV_PHYSICAL_GPU_HANDLE handle,unsigned long entry, NVIDIA_GPU_PERF_TABLE* perf_table
+34206D86,GpuClientPowerPoliciesGetInfo,NV_PHYSICAL_GPU_HANDLE handle,NVIDIA_GPU_POWER_POLICIES_INFO* policies_info
+70916171,GpuClientPowerPoliciesGetStatus,NV_PHYSICAL_GPU_HANDLE handle,NVIDIA_GPU_POWER_POLICIES_STATUS* policies_status

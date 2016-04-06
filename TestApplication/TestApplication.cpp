@@ -24,8 +24,20 @@ int main()
     NV_PHYSICAL_GPU_HANDLE handles[32];
     unsigned long count;
     NV_ASSERT(NVIDIA_RAW_GetPhysicalGPUHandles(handles, &count));
-
     NV_PHYSICAL_GPU_HANDLE handle = handles[0];
+
+    NVIDIA_GPU_POWER_POLICIES_INFO p;
+    REINIT_NVIDIA_STRUCT(p);
+    NV_ASSERT(NVIDIA_RAW_GpuClientPowerPoliciesGetInfo(handle, &p));
+
+    NVIDIA_GPU_POWER_POLICIES_STATUS p_s;
+    REINIT_NVIDIA_STRUCT(p_s);
+    NV_ASSERT(NVIDIA_RAW_GpuClientPowerPoliciesGetStatus(handle, &p_s));
+
+    NVIDIA_GPU_PSTATES20_V2 pstates;
+    REINIT_NVIDIA_STRUCT(pstates);
+    NV_ASSERT(NVIDIA_RAW_GetPstates20(handle, &pstates));
+
     NVIDIA_DYNAMIC_PSTATES dynamic_pstates;
     memset(dynamic_pstates.pstates, 0, 16 * 4);
     NV_ASSERT(NVIDIA_RAW_GetDynamicPStates(handle, &dynamic_pstates));

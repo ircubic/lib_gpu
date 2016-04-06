@@ -2,7 +2,7 @@
 #include "helpers.h"
 
 #define NVIDIA_STRUCT_VERSION(_struct, _version) (_version<<16 | sizeof(_struct))
-#define NVIDIA_STRUCT_BEGIN_EX(_name, _version, _flags)  struct NVLIB_EXPORTED _name {\
+#define NVIDIA_STRUCT_BEGIN_EX(_name, _version, _flags) struct NVLIB_EXPORTED _name {\
 	UINT32 version = NVIDIA_STRUCT_VERSION(_name, _version);\
 	UINT32 _flags; 
 #define NVIDIA_STRUCT_BEGIN(_name, _version) NVIDIA_STRUCT_BEGIN_EX(_name, _version, flags)
@@ -138,6 +138,17 @@ typedef enum {
     NVIDIA_CLOCK_SYSTEM_MEMORY = 4,
     NVIDIA_CLOCK_SYSTEM_SHADER = 7
 } NVIDIA_CLOCK_SYSTEM;
+
+/**
+* The known subsystems one can get utilization for.
+*/
+typedef enum {
+    NVIDIA_DYNAMIC_PSTATES_SYSTEM_GPU = 0,
+    NVIDIA_DYNAMIC_PSTATES_SYSTEM_FB = 1,
+    NVIDIA_DYNAMIC_PSTATES_SYSTEM_VID = 2,
+    NVIDIA_DYNAMIC_PSTATES_SYSTEM_BUS = 3
+} NVIDIA_DYNAMIC_PSTATES_SYSTEM;
+
 #pragma region Structs
 
 NVIDIA_STRUCT_BEGIN(NVIDIA_GPU_PSTATES20_V2, 2)
@@ -223,16 +234,6 @@ UINT32 unknownBuf[450];
 NVIDIA_STRUCT_END
 
 /**
-* The known subsystems one can get utilization for.
-*/
-typedef enum {
-    NVIDIA_DYNAMIC_PSTATES_SYSTEM_GPU = 0,
-    NVIDIA_DYNAMIC_PSTATES_SYSTEM_FB = 1,
-    NVIDIA_DYNAMIC_PSTATES_SYSTEM_VID = 2,
-    NVIDIA_DYNAMIC_PSTATES_SYSTEM_BUS = 3
-} NVIDIA_DYNAMIC_PSTATES_SYSTEM;
-
-/**
 * The utilization of various subsystems of the graphics card.
 *
 * Each system has a specific index in the pstates array, defined by the
@@ -250,6 +251,27 @@ struct {
     */
     UINT32 value;
 } pstates[8];
+NVIDIA_STRUCT_END
+
+NVIDIA_STRUCT_BEGIN(NVIDIA_GPU_POWER_POLICIES_INFO, 1)
+struct {
+    UINT32 unknown[3];
+    UINT32 min_power;
+    UINT32 unknown2[2];
+    UINT32 default_power;
+    UINT32 unknown3[2];
+    UINT32 max_power;
+    UINT32 unknown4;
+} entries[4];
+NVIDIA_STRUCT_END
+
+NVIDIA_STRUCT_BEGIN_EX(NVIDIA_GPU_POWER_POLICIES_STATUS, 1, count)
+struct {
+    UINT32 flags;
+    UINT32 unknown;
+    UINT32 power;
+    UINT32 unknown2;
+} entries[4];
 NVIDIA_STRUCT_END
 
 #pragma endregion
