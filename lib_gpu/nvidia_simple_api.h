@@ -2,14 +2,14 @@
 
 #include "helpers.h"
 extern "C" {
-    struct NVLIB_EXPORTED nvidia_simple_clocks
+    struct nvidia_simple_clocks
     {
         float coreClock;
         float memoryClock;
         float shaderClock;
     };
 
-    struct NVLIB_EXPORTED nvidia_simple_usages
+    struct nvidia_simple_usages
     {
         float gpuUsage;
         float fbUsage;
@@ -17,14 +17,14 @@ extern "C" {
         float busUsage;
     };
 
-    struct NVLIB_EXPORTED nvidia_simple_overclock_setting
+    struct nvidia_simple_overclock_setting
     {
         float currentValue;
         float minValue;
         float maxValue;
     };
 
-    struct NVLIB_EXPORTED nvidia_simple_overclock_profile
+    struct nvidia_simple_overclock_profile
     {
         struct nvidia_simple_overclock_setting coreOverclock;
         struct nvidia_simple_overclock_setting memoryOverclock;
