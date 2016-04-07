@@ -1,5 +1,6 @@
 #pragma once
 #include "helpers.h"
+#include <basetsd.h>
 
 #define NVIDIA_STRUCT_VERSION(_struct, _version) (_version<<16 | sizeof(_struct))
 #define NVIDIA_STRUCT_BEGIN_EX(_name, _version, _flags) struct NVLIB_EXPORTED _name {\
