@@ -3,6 +3,7 @@
 #include "nvidia_interface.h"
 #include <vector>
 #include <algorithm>
+#include "NvidiaGPU.h"
 
 NvidiaApi::NvidiaApi()
 {
@@ -67,71 +68,4 @@ bool NvidiaApi::ensureGPUsLoaded()
     }
     this->GPUloaded = false;
     return false;
-}
-
-float NvidiaGPU::getClockForSystem(NVIDIA_CLOCK_SYSTEM system)
-{
-    if (this->reloadFrequencies()) {
-        if (this->frequencies.entries[system].present) {
-            return this->frequencies.entries[system].freq / 1000.0;
-        }
-    }
-
-    return -1;
-}
-
-float NvidiaGPU::getCoreClock()
-{
-    return this->getClockForSystem(NVIDIA_CLOCK_SYSTEM_GPU);    
-}
-
-float NvidiaGPU::getMemoryClock()
-{
-
-    return this->getClockForSystem(NVIDIA_CLOCK_SYSTEM_MEMORY);
-}
-
-float NvidiaGPU::getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM system)
-{
-    struct NVIDIA_DYNAMIC_PSTATES pstates;
-    REINIT_NVIDIA_STRUCT(pstates);
-    if (NVIDIA_RAW_GetDynamicPStates(this->handle, &pstates) == NVAPI_OK) {
-        auto state = pstates.pstates[system];
-        if (state.present) {
-            return state.value;
-        }
-    }
-
-    return -1;
-}
-
-float NvidiaGPU::getGPUUsage()
-{
-    return this->getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_GPU);
-}
-
-float NvidiaGPU::getFBUsage()
-{
-    return this->getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_FB);
-}
-
-float NvidiaGPU::getVidUsage()
-{
-    return this->getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_VID);
-}
-
-float NvidiaGPU::getBusUsage()
-{
-    return this->getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_BUS);
-}
-
-NvidiaGPU::NvidiaGPU(NV_PHYSICAL_GPU_HANDLE handle)
-{
-    this->handle = handle;
-}
-bool NvidiaGPU::reloadFrequencies()
-{
-    memset(this->frequencies.entries, 0, sizeof(this->frequencies.entries));
-    this->frequencies.clock_type = 0; // queries current frequency
-    return NVIDIA_RAW_GetAllClockFrequencies(this->handle, &this->frequencies) == NVAPI_OK;
 }

@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "nvidia_simple_api.h"
-#include "NvidiaApi.h"
+#include "lib_gpu_nvidia.h"
 #include "nvidia_interface.h"
 
 static std::unique_ptr<NvidiaApi> api{};
