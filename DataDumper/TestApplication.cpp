@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include <iostream>
+#include "lib_gpu.h"
 #include "nvidia_interface.h"
 #include "nvidia_simple_api.h"
 

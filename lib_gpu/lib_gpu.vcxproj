@@ -198,6 +198,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="helpers.h" />
+    <ClInclude Include="lib_gpu_nvidia.h" />
     <ClInclude Include="NvidiaApi.h" />
     <ClInclude Include="nvidia_interface.h" />
     <ClInclude Include="nvidia_interface_datatypes.h" />
@@ -205,7 +206,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="nvidia_library.h" />
+    <ClInclude Include="lib_gpu.h" />
     <ClInclude Include="nvidia_simple_api.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="targetver.h" />
