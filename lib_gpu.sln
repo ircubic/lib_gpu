@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nvidia_library", "nvidia_library\nvidia_library.vcxproj", "{E368B26D-A2FE-4368-B63C-20448C0FA4F8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib_gpu", "lib_gpu\lib_gpu.vcxproj", "{E368B26D-A2FE-4368-B63C-20448C0FA4F8}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestApplication", "TestApplication\TestApplication.vcxproj", "{09983510-8835-4001-A2F4-24DCC981BB9B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DataDumper", "DataDumper\DataDumper.vcxproj", "{09983510-8835-4001-A2F4-24DCC981BB9B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
