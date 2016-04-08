@@ -4,6 +4,9 @@
 #include "helpers.h"
 #include "nvidia_interface_datatypes.h"
 
+struct GpuUsage; 
+struct GpuOverclockProfile;
+
 class NVLIB_EXPORTED NvidiaGPU
 {
 public:
@@ -11,6 +14,8 @@ public:
     bool poll();
     float getCoreClock();
     float getMemoryClock();
+    std::unique_ptr<GpuOverclockProfile> getOverclockProfile();
+    std::unique_ptr<GpuUsage> getUsage();
     float getGPUUsage();
     float getFBUsage();
     float getVidUsage();
@@ -23,9 +28,41 @@ private:
     std::unique_ptr<NVIDIA_GPU_POWER_POLICIES_INFO> powerPoliciesInfo;
     std::unique_ptr<NVIDIA_GPU_POWER_POLICIES_STATUS> powerPoliciesStatus;
 
-    NvidiaGPU(NV_PHYSICAL_GPU_HANDLE handle);
+    NvidiaGPU(const NV_PHYSICAL_GPU_HANDLE handle);
 
     bool reloadFrequencies();
-    float getClockForSystem(NVIDIA_CLOCK_SYSTEM system);
-    float getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM system);
+    float getClockForSystem(const NVIDIA_CLOCK_SYSTEM system);
+    float getUsageForSystem(const NVIDIA_DYNAMIC_PSTATES_SYSTEM system);
 };
+
+typedef float MHz;
+typedef float mV;
+
+template <typename T>
+struct GpuOverclockSetting
+{
+    bool editable;
+    T currentValue;
+    T minValue;
+    T maxValue;
+    GpuOverclockSetting();
+    GpuOverclockSetting(NVIDIA_DELTA_ENTRY const& delta, bool editable = false);
+};
+
+struct GpuOverclockProfile
+{
+    GpuOverclockSetting<MHz> coreOverclock;
+    GpuOverclockSetting<MHz> memoryOverclock;
+    GpuOverclockSetting<MHz> shaderOverclock;
+    GpuOverclockSetting<mV> overvolt;
+};
+
+struct GpuUsage
+{
+    float coreUsage;
+    float fbUsage;
+    float vidUsage;
+    float busUsage;
+};
+
+

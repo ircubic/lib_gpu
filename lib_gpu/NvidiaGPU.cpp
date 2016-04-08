@@ -72,13 +72,69 @@ float NvidiaGPU::getMemoryClock()
     return this->getClockForSystem(NVIDIA_CLOCK_SYSTEM_MEMORY);
 }
 
+#define LIFT_UNIT(x) (x/1000.0)
+
+int get_best_pstate_index(NVIDIA_GPU_PSTATES20_V2 const& pstates) {
+    int best_pstate_index = 0;
+    int best_pstate_state = INT_MAX;
+    for (size_t i = 0; i < pstates.state_count; i++) {
+        if (pstates.states[i].state_num < best_pstate_state) {
+            best_pstate_index = i;
+            best_pstate_state = pstates.states[i].state_num;
+        }
+    }
+    return best_pstate_index;
+}
+
+std::unique_ptr<GpuOverclockProfile> NvidiaGPU::getOverclockProfile()
+{
+    auto profile = std::make_unique<GpuOverclockProfile>();
+    int best_pstate_index = get_best_pstate_index(*this->pstates20);
+    auto best_pstate = this->pstates20->states[best_pstate_index];
+    auto fetcher = [&](int i) { return GpuOverclockSetting<MHz>(best_pstate.clocks[i].freq_delta, (best_pstate.flags & 1)); };
+
+    for (int i = 0; i < this->pstates20->clock_count; i++)
+    {
+        switch (best_pstate.clocks[i].domain) {
+        case NVIDIA_CLOCK_SYSTEM_GPU:
+            profile->coreOverclock = fetcher(i);
+            break;
+        case NVIDIA_CLOCK_SYSTEM_MEMORY:
+            profile->memoryOverclock = fetcher(i);
+            break;
+        case NVIDIA_CLOCK_SYSTEM_SHADER:
+            profile->shaderOverclock = fetcher(i);
+            break;
+        }
+
+    }
+
+    return profile;
+}
+
+float getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM system, const NVIDIA_DYNAMIC_PSTATES& pstates)
+{
+    auto state = pstates.pstates[system];
+    return state.present ? state.value : -1.0;
+}
+
+std::unique_ptr<GpuUsage> NvidiaGPU::getUsage()
+{
+    if (this->dynamicPstates) {
+        return std::unique_ptr<GpuUsage>(new GpuUsage{
+            ::getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_GPU, *this->dynamicPstates),
+            ::getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_FB, *this->dynamicPstates),
+            ::getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_VID, *this->dynamicPstates),
+            ::getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_BUS, *this->dynamicPstates)
+        });
+    }
+    return nullptr;
+}
+
 float NvidiaGPU::getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM system)
 {
     if(this->poll()) {
-        auto state = this->dynamicPstates->pstates[system];
-        if (state.present) {
-            return state.value;
-        }
+        return ::getUsageForSystem(system, *this->dynamicPstates);
     }
 
     return -1;
@@ -104,7 +160,7 @@ float NvidiaGPU::getBusUsage()
     return this->getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_BUS);
 }
 
-NvidiaGPU::NvidiaGPU(NV_PHYSICAL_GPU_HANDLE handle)
+NvidiaGPU::NvidiaGPU(const NV_PHYSICAL_GPU_HANDLE handle)
 {
     this->handle = handle;
 }
@@ -120,3 +176,18 @@ bool NvidiaGPU::reloadFrequencies()
     return success;
 }
 
+template<typename T>
+GpuOverclockSetting<T>::GpuOverclockSetting()
+{
+    this->editable = false;
+    this->currentValue = this->maxValue = this->minValue = 0.0;
+}
+
+template<typename T>
+GpuOverclockSetting<T>::GpuOverclockSetting(NVIDIA_DELTA_ENTRY const& delta, bool editable)
+{
+    this->editable = editable;
+    this->currentValue = LIFT_UNIT(delta.value);
+    this->minValue = LIFT_UNIT(delta.val_min);
+    this->maxValue = LIFT_UNIT(delta.val_max);
+}
