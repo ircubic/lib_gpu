@@ -57,67 +57,28 @@ struct nvidia_simple_usages get_usages()
     return usages;
 }
 
-
-int get_best_pstate_index(struct NVIDIA_GPU_PSTATES20_V2& pstates) {
-    int best_pstate_index = 0;
-    int best_pstate_state = 0;
-    for (size_t i = 0; i < pstates.state_count; i++) {
-        if (pstates.states[i].state_num < best_pstate_state) {
-            best_pstate_index = i;
-        }
-    }
-    return best_pstate_index;
-}
-#define TO_MHZ(x) (x / 1000.0)
-
-struct nvidia_simple_overclock_setting get_setting_from_pstate(NVIDIA_GPU_PSTATES20_V2& pstates, int state_index, int clock_index)
-{
-    auto pstate = pstates.states[state_index];
-    auto freq_delta = pstate.clocks[clock_index].freq_delta;
-    return {
-        TO_MHZ(freq_delta.value),
-        TO_MHZ(freq_delta.val_min),
-        TO_MHZ(freq_delta.val_max)
-    };
-}
-
 struct nvidia_simple_overclock_profile get_overclock_profile()
 {
     struct nvidia_simple_overclock_profile profile = {0};
 
     if (ensureApi()) {
-        NVIDIA_GPU_PSTATES20_V2 pstates;
-        REINIT_NVIDIA_STRUCT(pstates);
-        NV_PHYSICAL_GPU_HANDLE handles[64];
-        unsigned long count = 0;
-        if (NVIDIA_RAW_GetPhysicalGPUHandles(handles, &count) == NVAPI_OK &&
-            NVIDIA_RAW_GetPstates20(handles[0], &pstates) == NVAPI_OK) {
-            int best_pstate_index = get_best_pstate_index(pstates);
-            auto best_pstate = pstates.states[best_pstate_index];
-            int core_clock_index = INT_MAX;
-            int memory_clock_index = INT_MAX;
-            for (size_t i = 0; i < pstates.clock_count; i++)
-            {
-                switch (best_pstate.clocks[i].domain) {
-                case NVIDIA_CLOCK_SYSTEM_GPU:
-                    core_clock_index = i;
-                    break;
-                case NVIDIA_CLOCK_SYSTEM_MEMORY:
-                    memory_clock_index = i;
-                    break;
-                }
+        auto gpu = api->getGPU(0);
+        gpu->poll();
 
-            }
-            if (core_clock_index < pstates.clock_count) {
-                profile.coreOverclock = get_setting_from_pstate(pstates, best_pstate_index, core_clock_index);
-            }
-            if (memory_clock_index < pstates.clock_count) {
-                profile.memoryOverclock = get_setting_from_pstate(pstates, best_pstate_index, memory_clock_index);
-            }
-        }
+        auto convert_setting = [](GpuOverclockSetting<float> const& setting)-> nvidia_simple_overclock_setting {
+            return { setting.currentValue, setting.minValue, setting.maxValue };
+        };
+
+        auto realProfile = gpu->getOverclockProfile();
+
+        return{
+            convert_setting(realProfile->coreOverclock),
+            convert_setting(realProfile->memoryOverclock),
+            convert_setting(realProfile->shaderOverclock)
+        };
     }
 
-    return profile;
+    return { 0 };
 }
 
 NVLIB_EXPORTED bool overclock(float new_delta, int clock)
@@ -149,12 +110,10 @@ NVLIB_EXPORTED bool overclock(float new_delta, int clock)
 
         if (NVIDIA_RAW_GetPhysicalGPUHandles(handles, &count) == NVAPI_OK &&
             NVIDIA_RAW_GetPstates20(handles[0], &pstates) == NVAPI_OK) {
-            int best_pstate_index = get_best_pstate_index(pstates);
-            int best_pstate = pstates.states[best_pstate_index].state_num;
             REINIT_NVIDIA_STRUCT(pstates);
             pstates.clock_count = 1;
             pstates.state_count = 1;
-            pstates.states[0].state_num = best_pstate;
+            pstates.states[0].state_num = 0;
             auto overclockClock = &(pstates.states[0].clocks[0]);
             overclockClock->domain = clock;
             overclockClock->freq_delta.value = new_value;
