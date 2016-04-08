@@ -1,9 +1,9 @@
 #pragma once
-#include "helpers.h"
 #include <vector>
 #include <memory>
 
-class NvidiaGPU;
+#include "helpers.h"
+#include "NvidiaGpu.h"
 
 class NVLIB_EXPORTED NvidiaApi
 {

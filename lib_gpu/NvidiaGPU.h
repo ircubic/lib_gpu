@@ -2,7 +2,6 @@
 
 #include <memory>
 #include "helpers.h"
-#include "NvidiaApi.h"
 #include "nvidia_interface_datatypes.h"
 
 class NVLIB_EXPORTED NvidiaGPU
