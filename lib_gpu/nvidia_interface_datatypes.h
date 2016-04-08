@@ -152,6 +152,13 @@ typedef enum {
 
 #pragma region Structs
 
+struct NVIDIA_DELTA_ENTRY
+{
+    INT32 value;
+    INT32 val_min;
+    INT32 val_max;
+};
+
 NVIDIA_STRUCT_BEGIN(NVIDIA_GPU_PSTATES20_V2, 2)
 UINT32 state_count;
 UINT32 clock_count;
@@ -163,11 +170,7 @@ struct {
         UINT32 domain;
         UINT32 type;
         UINT32 flags;
-        struct {
-            INT32 value;
-            INT32 val_min;
-            INT32 val_max;
-        } freq_delta;
+        NVIDIA_DELTA_ENTRY freq_delta;
         UINT32 min_or_single_freq;
         UINT32 max_freq;
         UINT32 voltage_domain;
@@ -178,11 +181,7 @@ struct {
         UINT32 domain;
         UINT32 flags;
         UINT32 voltage;
-        struct {
-            INT32 value;
-            INT32 val_min;
-            INT32 val_max;
-        } volt_delta;
+        NVIDIA_DELTA_ENTRY volt_delta;
     } voltages[4];
 } states[16];
 struct {
@@ -191,11 +190,7 @@ struct {
         UINT32 domain;
         UINT32 flags;
         UINT32 voltage;
-        struct {
-            INT32 value;
-            INT32 val_min;
-            INT32 val_max;
-        } volt_delta;
+        NVIDIA_DELTA_ENTRY volt_delta;
     } voltages[4];
 } ov;
 NVIDIA_STRUCT_END
