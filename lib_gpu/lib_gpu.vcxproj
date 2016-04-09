@@ -197,6 +197,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="GpuDatatypes.h" />
     <ClInclude Include="helpers.h" />
     <ClInclude Include="lib_gpu_nvidia.h" />
     <ClInclude Include="NvidiaApi.h" />

@@ -57,32 +57,22 @@ struct nvidia_simple_usages get_usages()
     return usages;
 }
 
-struct nvidia_simple_overclock_profile get_overclock_profile()
+struct GpuOverclockProfile get_overclock_profile()
 {
-    struct nvidia_simple_overclock_profile profile = {0};
-
     if (ensureApi()) {
         auto gpu = api->getGPU(0);
         gpu->poll();
-
-        auto convert_setting = [](GpuOverclockSetting<float> const& setting)-> nvidia_simple_overclock_setting {
-            return { setting.currentValue, setting.minValue, setting.maxValue };
-        };
-
-        auto realProfile = gpu->getOverclockProfile();
-
-        return{
-            convert_setting(realProfile->coreOverclock),
-            convert_setting(realProfile->memoryOverclock),
-            convert_setting(realProfile->shaderOverclock)
-        };
+        return *gpu->getOverclockProfile();
     }
 
-    return { 0 };
+    return{};
 }
 
 NVLIB_EXPORTED bool overclock(float new_delta, int clock)
 {
+    auto convert_setting = [](GpuOverclockSetting<float> const& setting)-> nvidia_simple_overclock_setting {
+        return{ setting.currentValue, setting.minValue, setting.maxValue };
+    };
     bool result = false;
     NVIDIA_CLOCK_SYSTEM system = (NVIDIA_CLOCK_SYSTEM)clock;
     auto profile = get_overclock_profile();
@@ -90,10 +80,10 @@ NVLIB_EXPORTED bool overclock(float new_delta, int clock)
     auto setting = nvidia_simple_overclock_setting { 0.0 };
     switch (clock) {
     case NVIDIA_CLOCK_SYSTEM_GPU:
-        setting = profile.coreOverclock;
+        setting = convert_setting(profile.coreOverclock);
         break;
     case NVIDIA_CLOCK_SYSTEM_MEMORY:
-        setting = profile.memoryOverclock;
+        setting = convert_setting(profile.memoryOverclock);
         break;
     default:
         return false;

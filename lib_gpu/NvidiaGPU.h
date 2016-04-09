@@ -4,6 +4,7 @@
 #include <string>
 #include "helpers.h"
 #include "nvidia_interface_datatypes.h"
+#include "GpuDatatypes.h"
 
 struct GpuUsage; 
 struct GpuOverclockProfile;
@@ -36,36 +37,6 @@ private:
     bool reloadFrequencies();
     float getClockForSystem(const NVIDIA_CLOCK_SYSTEM system);
     float getUsageForSystem(const NVIDIA_DYNAMIC_PSTATES_SYSTEM system);
-};
-
-typedef float MHz;
-typedef float mV;
-
-template <typename T>
-struct GpuOverclockSetting
-{
-    bool editable;
-    T currentValue;
-    T minValue;
-    T maxValue;
-    GpuOverclockSetting();
-    GpuOverclockSetting(NVIDIA_DELTA_ENTRY const& delta, bool editable = false);
-};
-
-struct GpuOverclockProfile
-{
-    GpuOverclockSetting<MHz> coreOverclock;
-    GpuOverclockSetting<MHz> memoryOverclock;
-    GpuOverclockSetting<MHz> shaderOverclock;
-    GpuOverclockSetting<mV> overvolt;
-};
-
-struct GpuUsage
-{
-    float coreUsage;
-    float fbUsage;
-    float vidUsage;
-    float busUsage;
 };
 
 
