@@ -168,6 +168,15 @@ struct {
     UINT32 flags;
     struct {
         UINT32 domain;
+        /**
+         * Whether this clock is single- or dynamic-frequency.
+         *
+         * 0 indicates single frequency, 1 indicates dynamic.
+         *
+         * If this clock is single frequency, the `max_freq`, `voltage_domain`,
+         * `min_volt` and `max_volt` values are invalid, and
+         * `min_or_single_freq` contains the static frequency.
+         */
         UINT32 type;
         UINT32 flags;
         NVIDIA_DELTA_ENTRY freq_delta;
@@ -177,12 +186,31 @@ struct {
         UINT32 min_volt;
         UINT32 max_volt;
     } clocks[8];
+
+    /**
+     * Base voltage for all the available voltage domains.
+     *
+     * The base voltage is the voltage at which the GPU will rest when it's in
+     * a given powerstate. The array contains `voltage_count` entries.
+     */
     struct {
+        /**
+         * The voltage domain being described.
+         *
+         * This value is referenced by one or more `clocks` entries in their
+         * `voltage_domain` attributes.
+         */
         UINT32 domain;
+        /**
+         * The base voltage delta can be edited if bit 0 of the flags is set.
+         */
         UINT32 flags;
+        /**
+         * The current base voltage value.
+         */
         UINT32 voltage;
         NVIDIA_DELTA_ENTRY volt_delta;
-    } voltages[4];
+    } base_voltages[4];
 } states[16];
 struct {
     UINT32 voltage_count;
@@ -192,7 +220,7 @@ struct {
         UINT32 voltage;
         NVIDIA_DELTA_ENTRY volt_delta;
     } voltages[4];
-} ov;
+} over_volt;
 NVIDIA_STRUCT_END
 
 /**
