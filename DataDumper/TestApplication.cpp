@@ -27,6 +27,10 @@ int main()
     NV_ASSERT(NVIDIA_RAW_GetPhysicalGPUHandles(handles, &count));
     NV_PHYSICAL_GPU_HANDLE handle = handles[0];
 
+
+    NV_ASSERT(NVIDIA_RAW_GetFullName(handle, buffer));
+    std::cout << buffer << std::endl;
+
     NVIDIA_GPU_POWER_POLICIES_INFO p;
     REINIT_NVIDIA_STRUCT(p);
     NV_ASSERT(NVIDIA_RAW_GpuClientPowerPoliciesGetInfo(handle, &p));

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include "helpers.h"
 #include "nvidia_interface_datatypes.h"
 
@@ -12,6 +13,7 @@ class NVLIB_EXPORTED NvidiaGPU
 public:
     friend class NvidiaApi;
     bool poll();
+    std::string getName();
     std::unique_ptr<GpuOverclockProfile> getOverclockProfile();
     std::unique_ptr<GpuUsage> getUsage();
 

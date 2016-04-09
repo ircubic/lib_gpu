@@ -10,3 +10,4 @@ DCB616C3,GetAllClockFrequencies,NV_PHYSICAL_GPU_HANDLE handle, struct NVIDIA_CLO
 1EA54A3B,GetPerfClocks,NV_PHYSICAL_GPU_HANDLE handle,unsigned long entry, NVIDIA_GPU_PERF_TABLE* perf_table
 34206D86,GpuClientPowerPoliciesGetInfo,NV_PHYSICAL_GPU_HANDLE handle,NVIDIA_GPU_POWER_POLICIES_INFO* policies_info
 70916171,GpuClientPowerPoliciesGetStatus,NV_PHYSICAL_GPU_HANDLE handle,NVIDIA_GPU_POWER_POLICIES_STATUS* policies_status
+0CEEE8E9F,GetFullName,NV_PHYSICAL_GPU_HANDLE handle,char* name_buf

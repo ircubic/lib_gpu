@@ -61,6 +61,17 @@ bool NvidiaGPU::poll()
     return success;
 }
 
+std::string NvidiaGPU::getName()
+{
+    char name_buf[64];
+    
+    if (NVIDIA_RAW_GetFullName(this->handle, name_buf) != NVAPI_OK) {
+        name_buf[0] = '\0';
+    }
+
+    return std::string(name_buf);
+}
+
 float NvidiaGPU::getCoreClock()
 {
     return this->getClockForSystem(NVIDIA_CLOCK_SYSTEM_GPU);
