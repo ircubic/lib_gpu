@@ -93,11 +93,17 @@ std::unique_ptr<GpuOverclockProfile> NvidiaGPU::getOverclockProfile()
     auto best_pstate = this->pstates20->states[best_pstate_index];
     auto fetcher = [&](int i) { return GpuOverclockSetting<MHz>(best_pstate.clocks[i].freq_delta, (best_pstate.flags & 1)); };
 
+    int gpu_voltage_domain = INT_MAX;
+
     for (int i = 0; i < this->pstates20->clock_count; i++)
     {
-        switch (best_pstate.clocks[i].domain) {
+        auto clock = best_pstate.clocks[i];
+        switch (clock.domain) {
         case NVIDIA_CLOCK_SYSTEM_GPU:
             profile->coreOverclock = fetcher(i);
+            if (clock.type == 1) {
+                gpu_voltage_domain = clock.voltage_domain;
+            }
             break;
         case NVIDIA_CLOCK_SYSTEM_MEMORY:
             profile->memoryOverclock = fetcher(i);
@@ -107,6 +113,16 @@ std::unique_ptr<GpuOverclockProfile> NvidiaGPU::getOverclockProfile()
             break;
         }
 
+    }
+
+    if (gpu_voltage_domain < INT_MAX) {
+        auto over_volt = this->pstates20->over_volt;
+        for (int i = 0; i < over_volt.voltage_count; i++)
+        {
+            if (over_volt.voltages[i].domain == gpu_voltage_domain) {
+                profile->overvolt = GpuOverclockSetting<mV>(over_volt.voltages[i].volt_delta, (over_volt.voltages[i].flags & 1));
+            }
+        }
     }
 
     return profile;

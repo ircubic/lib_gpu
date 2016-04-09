@@ -12,10 +12,11 @@ class NVLIB_EXPORTED NvidiaGPU
 public:
     friend class NvidiaApi;
     bool poll();
-    float getCoreClock();
-    float getMemoryClock();
     std::unique_ptr<GpuOverclockProfile> getOverclockProfile();
     std::unique_ptr<GpuUsage> getUsage();
+
+    float getCoreClock();
+    float getMemoryClock();
     float getGPUUsage();
     float getFBUsage();
     float getVidUsage();
