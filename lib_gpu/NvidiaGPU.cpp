@@ -83,8 +83,6 @@ float NvidiaGPU::getMemoryClock()
     return this->getClockForSystem(NVIDIA_CLOCK_SYSTEM_MEMORY);
 }
 
-#define LIFT_UNIT(x) (x/1000.0)
-
 int get_best_pstate_index(NVIDIA_GPU_PSTATES20_V2 const& pstates) {
     int best_pstate_index = 0;
     int best_pstate_state = INT_MAX;
@@ -102,7 +100,7 @@ std::unique_ptr<GpuOverclockProfile> NvidiaGPU::getOverclockProfile()
     auto profile = std::make_unique<GpuOverclockProfile>();
     int best_pstate_index = get_best_pstate_index(*this->pstates20);
     auto best_pstate = this->pstates20->states[best_pstate_index];
-    auto fetcher = [&](int i) { return GpuOverclockSetting<MHz>(best_pstate.clocks[i].freq_delta, (best_pstate.flags & 1)); };
+    auto fetcher = [&](int i) { return GpuOverclockSetting(best_pstate.clocks[i].freq_delta, (best_pstate.flags & 1)); };
 
     int gpu_voltage_domain = INT_MAX;
 
@@ -131,7 +129,7 @@ std::unique_ptr<GpuOverclockProfile> NvidiaGPU::getOverclockProfile()
         for (int i = 0; i < over_volt.voltage_count; i++)
         {
             if (over_volt.voltages[i].domain == gpu_voltage_domain) {
-                profile->overvolt = GpuOverclockSetting<mV>(over_volt.voltages[i].volt_delta, (over_volt.voltages[i].flags & 1));
+                profile->overvolt = GpuOverclockSetting(over_volt.voltages[i].volt_delta, (over_volt.voltages[i].flags & 1));
             }
         }
     }
@@ -201,20 +199,4 @@ bool NvidiaGPU::reloadFrequencies()
         success = true;
     }
     return success;
-}
-
-template<typename T>
-GpuOverclockSetting<T>::GpuOverclockSetting()
-{
-    this->editable = false;
-    this->currentValue = this->maxValue = this->minValue = 0.0;
-}
-
-template<typename T>
-GpuOverclockSetting<T>::GpuOverclockSetting(NVIDIA_DELTA_ENTRY const& delta, bool editable)
-{
-    this->editable = editable;
-    this->currentValue = LIFT_UNIT(delta.value);
-    this->minValue = LIFT_UNIT(delta.val_min);
-    this->maxValue = LIFT_UNIT(delta.val_max);
 }

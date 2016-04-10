@@ -70,7 +70,7 @@ struct GpuOverclockProfile get_overclock_profile()
 
 NVLIB_EXPORTED bool overclock(float new_delta, int clock)
 {
-    auto convert_setting = [](GpuOverclockSetting<float> const& setting)-> nvidia_simple_overclock_setting {
+    auto convert_setting = [](GpuOverclockSetting const& setting)-> nvidia_simple_overclock_setting {
         return{ setting.currentValue, setting.minValue, setting.maxValue };
     };
     bool result = false;

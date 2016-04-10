@@ -6,8 +6,6 @@
 #include "nvidia_interface_datatypes.h"
 #include "GpuDatatypes.h"
 
-struct GpuUsage; 
-struct GpuOverclockProfile;
 
 class NVLIB_EXPORTED NvidiaGPU
 {

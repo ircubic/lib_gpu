@@ -2,32 +2,38 @@
 
 #include "nvidia_interface_datatypes.h"
 
-typedef float MHz;
-typedef float mV;
+extern "C" {
+    typedef enum {
+        GPU_OVERCLOCK_SETTING_AREA_CORE,
+        GPU_OVERCLOCK_SETTING_AREA_MEMORY,
+        GPU_OVERCLOCK_SETTING_AREA_SHADER,
+        GPU_OVERCLOCK_SETTING_AREA_OVERVOLT
+    } GPU_OVERCLOCK_SETTING_AREA;
 
-template <typename T>
-struct GpuOverclockSetting
-{
-    bool editable;
-    T currentValue;
-    T minValue;
-    T maxValue;
-    GpuOverclockSetting();
-    GpuOverclockSetting(NVIDIA_DELTA_ENTRY const& delta, bool editable = false);
-};
+    struct GpuOverclockSetting
+    {
+        bool editable;
+        float currentValue;
+        float minValue;
+        float maxValue;
+        GpuOverclockSetting();
+        GpuOverclockSetting(NVIDIA_DELTA_ENTRY const& delta, const bool editable = false);
+    };
 
-extern "C" struct GpuOverclockProfile
-{
-    GpuOverclockSetting<MHz> coreOverclock;
-    GpuOverclockSetting<MHz> memoryOverclock;
-    GpuOverclockSetting<MHz> shaderOverclock;
-    GpuOverclockSetting<mV> overvolt;
-};
+    struct GpuOverclockProfile
+    {
+        const GpuOverclockSetting& operator[](const GPU_OVERCLOCK_SETTING_AREA area);
+        GpuOverclockSetting coreOverclock;
+        GpuOverclockSetting memoryOverclock;
+        GpuOverclockSetting shaderOverclock;
+        GpuOverclockSetting overvolt;
+    };
 
-struct GpuUsage
-{
-    float coreUsage;
-    float fbUsage;
-    float vidUsage;
-    float busUsage;
-};
+    struct GpuUsage
+    {
+        float coreUsage;
+        float fbUsage;
+        float vidUsage;
+        float busUsage;
+    };
+}
