@@ -2,10 +2,12 @@
 
 #include <memory>
 #include <string>
+#include <map>
 #include "helpers.h"
 #include "nvidia_interface_datatypes.h"
 #include "GpuDatatypes.h"
 
+typedef std::map<GPU_OVERCLOCK_SETTING_AREA, float> GpuOverclockDefinitionMap;
 
 class NVLIB_EXPORTED NvidiaGPU
 {
@@ -15,6 +17,7 @@ public:
     std::string getName();
     std::unique_ptr<GpuOverclockProfile> getOverclockProfile();
     std::unique_ptr<GpuUsage> getUsage();
+    bool setOverclock(const GpuOverclockDefinitionMap& overclockDefinitions);
 
     float getCoreClock();
     float getMemoryClock();

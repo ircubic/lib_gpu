@@ -13,6 +13,13 @@ int main()
     struct nvidia_simple_clocks clocks = get_clocks();
     struct nvidia_simple_usages usages = get_usages();
     GpuOverclockProfile profile = get_overclock_profile();
+    auto api = NvidiaApi();
+    auto gpu = api.getGPU(0);
+    auto new_overclock = GpuOverclockDefinitionMap();
+    new_overclock[GPU_OVERCLOCK_SETTING_AREA_CORE] = 140;
+    new_overclock[GPU_OVERCLOCK_SETTING_AREA_OVERVOLT] = 87;
+    bool success = gpu->setOverclock(new_overclock);
+    auto profile2 = get_overclock_profile();
     //bool overclock_success = overclock(140, NVIDIA_CLOCK_SYSTEM_GPU);
 
     std::cout << "GPU Clock: " << clocks.coreClock << std::endl << "Mem Clock: " << clocks.memoryClock << std::endl << "Usage: " << usages.gpuUsage << "%" << std::endl;
