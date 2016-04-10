@@ -25,6 +25,7 @@ SIMPLE_NVIDIA_CALL(DYNAMIC_PSTATES, NVIDIA_RAW_GetDynamicPStates);
 SIMPLE_NVIDIA_CALL(GPU_PSTATES20_V2, NVIDIA_RAW_GetPstates20);
 SIMPLE_NVIDIA_CALL(GPU_POWER_POLICIES_INFO, NVIDIA_RAW_GpuClientPowerPoliciesGetInfo);
 SIMPLE_NVIDIA_CALL(GPU_POWER_POLICIES_STATUS, NVIDIA_RAW_GpuClientPowerPoliciesGetStatus);
+SIMPLE_NVIDIA_CALL(GPU_VOLTAGE_DOMAINS_STATUS, NVIDIA_RAW_GpuGetVoltageDomainsStatus);
 
 bool NvidiaGPU::poll()
 {
@@ -34,16 +35,18 @@ bool NvidiaGPU::poll()
     //auto perfTable = std::make_shared<NVIDIA_GPU_PERF_TABLE>();
     auto powerPoliciesInfo = loadGPU_POWER_POLICIES_INFO(this->handle);
     auto powerPoliciesStatus = loadGPU_POWER_POLICIES_STATUS(this->handle);
+    auto voltageDomainsStatus = loadGPU_VOLTAGE_DOMAINS_STATUS(this->handle);
 
     auto success = false;
 
-    if (frequencies && dynamicPstates && pstates20 && powerPoliciesInfo && powerPoliciesStatus) {
+    if (frequencies && dynamicPstates && pstates20 && powerPoliciesInfo && powerPoliciesStatus && voltageDomainsStatus) {
         success = true;
         this->frequencies = std::move(frequencies);
         this->dynamicPstates = std::move(dynamicPstates);
         this->pstates20 = std::move(pstates20);
         this->powerPoliciesInfo = std::move(powerPoliciesInfo);
         this->powerPoliciesStatus = std::move(powerPoliciesStatus);
+        this->voltageDomainsStatus = std::move(voltageDomainsStatus);
     }
 
     return success;
@@ -58,6 +61,19 @@ std::string NvidiaGPU::getName()
     }
 
     return std::string(name_buf);
+}
+
+float NvidiaGPU::getVoltage()
+{
+    if (this->voltageDomainsStatus && this->voltageDomainsStatus->count > 0) {
+        for (int i = 0; i < this->voltageDomainsStatus->count; i++)
+        {
+            if (this->voltageDomainsStatus->entries[i].voltage_domain == 0) {
+                return this->voltageDomainsStatus->entries[i].current_voltage / 1000.0;
+            }
+        }
+    }
+    return -1;
 }
 
 std::unique_ptr<GpuClocks> NvidiaGPU::getClocks()
@@ -239,19 +255,7 @@ bool NvidiaGPU::setOverclock(const GpuOverclockDefinitionMap& overclockDefinitio
     return NVIDIA_RAW_SetPstates20(this->handle, &pstates) == NVAPI_OK;
 }
 
-
 NvidiaGPU::NvidiaGPU(const NV_PHYSICAL_GPU_HANDLE handle)
 {
     this->handle = handle;
-}
-
-bool NvidiaGPU::reloadFrequencies()
-{
-    auto frequencies = loadCLOCK_FREQUENCIES(this->handle);
-    bool success = false;
-    if (frequencies) {
-        this->frequencies = std::move(frequencies);
-        success = true;
-    }
-    return success;
 }

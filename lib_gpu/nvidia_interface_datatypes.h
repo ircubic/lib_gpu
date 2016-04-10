@@ -298,4 +298,12 @@ struct {
 } entries[4];
 NVIDIA_STRUCT_END
 
+NVIDIA_STRUCT_BEGIN(NVIDIA_GPU_VOLTAGE_DOMAINS_STATUS, 1)
+UINT32 count;
+struct {
+    UINT32 voltage_domain;
+    UINT32 current_voltage;
+} entries[16];
+NVIDIA_STRUCT_END
+
 #pragma endregion

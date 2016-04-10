@@ -14,11 +14,16 @@ class NVLIB_EXPORTED NvidiaGPU
 public:
     friend class NvidiaApi;
     bool poll();
+
     std::string getName();
+    float getVoltage();
+
     std::unique_ptr<GpuClocks> getClocks();
     std::unique_ptr<GpuOverclockProfile> getOverclockProfile();
     std::unique_ptr<GpuUsage> getUsage();
+
     bool setOverclock(const GpuOverclockDefinitionMap& overclockDefinitions);
+
 private:
     NV_PHYSICAL_GPU_HANDLE handle;
     std::unique_ptr<NVIDIA_CLOCK_FREQUENCIES> frequencies;
@@ -26,12 +31,11 @@ private:
     std::unique_ptr<NVIDIA_GPU_PSTATES20_V2> pstates20;
     std::unique_ptr<NVIDIA_GPU_POWER_POLICIES_INFO> powerPoliciesInfo;
     std::unique_ptr<NVIDIA_GPU_POWER_POLICIES_STATUS> powerPoliciesStatus;
+    std::unique_ptr<NVIDIA_GPU_VOLTAGE_DOMAINS_STATUS> voltageDomainsStatus;
 
     NvidiaGPU(const NV_PHYSICAL_GPU_HANDLE handle);
 
     bool reloadFrequencies();
-    float getClockForSystem(const NVIDIA_CLOCK_SYSTEM system);
-    float getUsageForSystem(const NVIDIA_DYNAMIC_PSTATES_SYSTEM system);
 };
 
 

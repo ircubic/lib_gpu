@@ -15,14 +15,18 @@ int main()
     GpuOverclockProfile profile = get_overclock_profile();
     auto api = NvidiaApi();
     auto gpu = api.getGPU(0);
-    auto new_overclock = GpuOverclockDefinitionMap();
+    gpu->poll();
+    /*auto new_overclock = GpuOverclockDefinitionMap();
     new_overclock[GPU_OVERCLOCK_SETTING_AREA_CORE] = 140;
     new_overclock[GPU_OVERCLOCK_SETTING_AREA_OVERVOLT] = 87;
     bool success = gpu->setOverclock(new_overclock);
-    auto profile2 = get_overclock_profile();
+    auto profile2 = get_overclock_profile();*/
     //bool overclock_success = overclock(140, NVIDIA_CLOCK_SYSTEM_GPU);
 
-    std::cout << "GPU Clock: " << clocks.coreClock << std::endl << "Mem Clock: " << clocks.memoryClock << std::endl << "Usage: " << usages.coreUsage << "%" << std::endl;
+    std::cout << "GPU Clock: " << clocks.coreClock << std::endl 
+        << "Mem Clock: " << clocks.memoryClock << std::endl 
+        << "Usage: " << usages.coreUsage << "%" << std::endl
+        << "Voltage: " << gpu->getVoltage() << "mV" << std::endl;
 
     char buffer[1024];
     memset(buffer, 0, 1024);
@@ -80,6 +84,10 @@ int main()
     NVIDIA_GPU_PERF_TABLE table;
     INIT_NVIDIA_STRUCT(table, 1);
     NV_ASSERT(NVIDIA_RAW_GetPerfClocks(handle, 1, &table));
+
+    NVIDIA_GPU_VOLTAGE_DOMAINS_STATUS status;
+    REINIT_NVIDIA_STRUCT(status);
+    NV_ASSERT(NVIDIA_RAW_GpuGetVoltageDomainsStatus(handle, &status));
 
     return 0;
 }
