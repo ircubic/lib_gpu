@@ -10,7 +10,7 @@
 int main()
 {
 
-    struct nvidia_simple_clocks clocks = get_clocks();
+    GpuClocks clocks = get_clocks();
     GpuUsage usages = get_usages();
     GpuOverclockProfile profile = get_overclock_profile();
     auto api = NvidiaApi();

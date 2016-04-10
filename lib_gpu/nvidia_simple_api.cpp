@@ -28,22 +28,17 @@ std::shared_ptr<NvidiaGPU> getUpdatedGPU(int num = 0) {
     return nullptr;
 }
 
-void init_simple_clocks(struct nvidia_simple_clocks& clocks) {
-    clocks.coreClock = -1;
-    clocks.memoryClock = -1;
-    clocks.shaderClock = -1;
-}
-
-struct nvidia_simple_clocks get_clocks()
+struct GpuClocks get_clocks()
 {
-    struct nvidia_simple_clocks clocks;
-    init_simple_clocks(clocks);
-    if (ensureApi()) {
-        auto gpu = api->getGPU(0);
-        clocks.coreClock = gpu->getCoreClock();
-        clocks.memoryClock = gpu->getMemoryClock();
+    auto gpu = getUpdatedGPU();
+    if (gpu) {
+        auto clocks = gpu->getClocks();
+        if (clocks) {
+            return *clocks;
+        }
     }
-    return clocks;
+
+    return {};
 }
 
 struct GpuUsage get_usages()
@@ -68,7 +63,7 @@ struct GpuOverclockProfile get_overclock_profile()
     return {};
 }
 
-NVLIB_EXPORTED bool overclock(float new_delta, int area)
+bool overclock(float new_delta, int area)
 {
     auto gpu = getUpdatedGPU();
     bool success = false;
@@ -80,7 +75,7 @@ NVLIB_EXPORTED bool overclock(float new_delta, int area)
     return success;
 }
 
-NVLIB_EXPORTED bool init_simple_api()
+bool init_simple_api()
 {
     return ensureApi();
 }

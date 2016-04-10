@@ -15,16 +15,10 @@ public:
     friend class NvidiaApi;
     bool poll();
     std::string getName();
+    std::unique_ptr<GpuClocks> getClocks();
     std::unique_ptr<GpuOverclockProfile> getOverclockProfile();
     std::unique_ptr<GpuUsage> getUsage();
     bool setOverclock(const GpuOverclockDefinitionMap& overclockDefinitions);
-
-    float getCoreClock();
-    float getMemoryClock();
-    float getGPUUsage();
-    float getFBUsage();
-    float getVidUsage();
-    float getBusUsage();
 private:
     NV_PHYSICAL_GPU_HANDLE handle;
     std::unique_ptr<NVIDIA_CLOCK_FREQUENCIES> frequencies;

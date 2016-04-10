@@ -36,4 +36,11 @@ extern "C" {
         float vidUsage;
         float busUsage;
     };
+
+    struct GpuClocks
+    {
+        float coreClock;
+        float memoryClock;
+        float shaderClock;
+    };
 }

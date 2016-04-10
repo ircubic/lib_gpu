@@ -26,18 +26,6 @@ SIMPLE_NVIDIA_CALL(GPU_PSTATES20_V2, NVIDIA_RAW_GetPstates20);
 SIMPLE_NVIDIA_CALL(GPU_POWER_POLICIES_INFO, NVIDIA_RAW_GpuClientPowerPoliciesGetInfo);
 SIMPLE_NVIDIA_CALL(GPU_POWER_POLICIES_STATUS, NVIDIA_RAW_GpuClientPowerPoliciesGetStatus);
 
-
-float NvidiaGPU::getClockForSystem(NVIDIA_CLOCK_SYSTEM system)
-{
-    if (this->reloadFrequencies()) {
-        if (this->frequencies->entries[system].present) {
-            return this->frequencies->entries[system].freq / 1000.0;
-        }
-    }
-
-    return -1;
-}
-
 bool NvidiaGPU::poll()
 {
     auto frequencies = loadCLOCK_FREQUENCIES(this->handle);
@@ -72,15 +60,21 @@ std::string NvidiaGPU::getName()
     return std::string(name_buf);
 }
 
-float NvidiaGPU::getCoreClock()
+std::unique_ptr<GpuClocks> NvidiaGPU::getClocks()
 {
-    return this->getClockForSystem(NVIDIA_CLOCK_SYSTEM_GPU);
-}
+    auto fetcher = [&](NVIDIA_CLOCK_SYSTEM system) -> float {
+        if (this->frequencies->entries[system].present) {
+            return this->frequencies->entries[system].freq / 1000.0;
+        }
+        return -1;
+    };
 
-float NvidiaGPU::getMemoryClock()
-{
-
-    return this->getClockForSystem(NVIDIA_CLOCK_SYSTEM_MEMORY);
+    auto clocks = new GpuClocks {
+        fetcher(NVIDIA_CLOCK_SYSTEM_GPU),
+        fetcher(NVIDIA_CLOCK_SYSTEM_MEMORY),
+        fetcher(NVIDIA_CLOCK_SYSTEM_SHADER)
+    };
+    return std::unique_ptr<GpuClocks>(clocks);
 }
 
 int get_best_pstate_index(NVIDIA_GPU_PSTATES20_V2 const& pstates) {
@@ -245,34 +239,6 @@ bool NvidiaGPU::setOverclock(const GpuOverclockDefinitionMap& overclockDefinitio
     return NVIDIA_RAW_SetPstates20(this->handle, &pstates) == NVAPI_OK;
 }
 
-float NvidiaGPU::getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM system)
-{
-    if(this->poll()) {
-        return ::getUsageForSystem(system, *this->dynamicPstates);
-    }
-
-    return -1;
-}
-
-float NvidiaGPU::getGPUUsage()
-{
-    return this->getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_GPU);
-}
-
-float NvidiaGPU::getFBUsage()
-{
-    return this->getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_FB);
-}
-
-float NvidiaGPU::getVidUsage()
-{
-    return this->getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_VID);
-}
-
-float NvidiaGPU::getBusUsage()
-{
-    return this->getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_BUS);
-}
 
 NvidiaGPU::NvidiaGPU(const NV_PHYSICAL_GPU_HANDLE handle)
 {
