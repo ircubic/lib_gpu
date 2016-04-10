@@ -17,6 +17,7 @@ public:
 
     std::string getName();
     float getVoltage();
+    float getTemp();
 
     std::unique_ptr<GpuClocks> getClocks();
     std::unique_ptr<GpuOverclockProfile> getOverclockProfile();
@@ -32,10 +33,9 @@ private:
     std::unique_ptr<NVIDIA_GPU_POWER_POLICIES_INFO> powerPoliciesInfo;
     std::unique_ptr<NVIDIA_GPU_POWER_POLICIES_STATUS> powerPoliciesStatus;
     std::unique_ptr<NVIDIA_GPU_VOLTAGE_DOMAINS_STATUS> voltageDomainsStatus;
+    std::unique_ptr<NVIDIA_GPU_THERMAL_SETTINGS_V2> thermalSettings;
 
     NvidiaGPU(const NV_PHYSICAL_GPU_HANDLE handle);
-
-    bool reloadFrequencies();
 };
 
 

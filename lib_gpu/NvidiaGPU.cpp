@@ -19,6 +19,15 @@ std::unique_ptr<NVIDIA_CLOCK_FREQUENCIES> loadCLOCK_FREQUENCIES(NV_PHYSICAL_GPU_
     return loadNvidiaStruct<NVIDIA_CLOCK_FREQUENCIES>(handle, NVIDIA_RAW_GetAllClockFrequencies, [](NVIDIA_CLOCK_FREQUENCIES* f) {f->clock_type = 0; });
 }
 
+std::unique_ptr<NVIDIA_GPU_THERMAL_SETTINGS_V2> loadGPU_THERMAL_SETTINGS_V2(NV_PHYSICAL_GPU_HANDLE const& handle)
+{
+    auto loader_wrapper = [](NV_PHYSICAL_GPU_HANDLE handle, NVIDIA_GPU_THERMAL_SETTINGS_V2* settings) {
+        return NVIDIA_RAW_GpuGetThermalSettings(handle, NVIDIA_THERMAL_TARGET_ALL, settings);
+    };
+
+    return loadNvidiaStruct<NVIDIA_GPU_THERMAL_SETTINGS_V2>(handle, loader_wrapper);
+}
+
 #define SIMPLE_NVIDIA_CALL(T_, function_) std::unique_ptr<NVIDIA_##T_> load ## T_(NV_PHYSICAL_GPU_HANDLE const& handle) { return loadNvidiaStruct<NVIDIA_##T_>(handle, function_); }
 
 SIMPLE_NVIDIA_CALL(DYNAMIC_PSTATES, NVIDIA_RAW_GetDynamicPStates);
@@ -36,10 +45,12 @@ bool NvidiaGPU::poll()
     auto powerPoliciesInfo = loadGPU_POWER_POLICIES_INFO(this->handle);
     auto powerPoliciesStatus = loadGPU_POWER_POLICIES_STATUS(this->handle);
     auto voltageDomainsStatus = loadGPU_VOLTAGE_DOMAINS_STATUS(this->handle);
+    auto thermalSettings = loadGPU_THERMAL_SETTINGS_V2(this->handle);
 
     auto success = false;
 
-    if (frequencies && dynamicPstates && pstates20 && powerPoliciesInfo && powerPoliciesStatus && voltageDomainsStatus) {
+    if (frequencies && dynamicPstates && pstates20 && powerPoliciesInfo &&
+        powerPoliciesStatus && voltageDomainsStatus && thermalSettings) {
         success = true;
         this->frequencies = std::move(frequencies);
         this->dynamicPstates = std::move(dynamicPstates);
@@ -47,6 +58,7 @@ bool NvidiaGPU::poll()
         this->powerPoliciesInfo = std::move(powerPoliciesInfo);
         this->powerPoliciesStatus = std::move(powerPoliciesStatus);
         this->voltageDomainsStatus = std::move(voltageDomainsStatus);
+        this->thermalSettings = std::move(thermalSettings);
     }
 
     return success;
@@ -70,6 +82,19 @@ float NvidiaGPU::getVoltage()
         {
             if (this->voltageDomainsStatus->entries[i].voltage_domain == 0) {
                 return this->voltageDomainsStatus->entries[i].current_voltage / 1000.0;
+            }
+        }
+    }
+    return -1;
+}
+
+float NvidiaGPU::getTemp()
+{
+    if (this->thermalSettings && this->thermalSettings->count > 0) {
+        for (int i = 0; i < this->thermalSettings->count; i++)
+        {
+            if (this->thermalSettings->sensor[i].target == NVIDIA_THERMAL_TARGET_GPU) {
+                return this->thermalSettings->sensor[i].current_temp;
             }
         }
     }

@@ -23,10 +23,11 @@ int main()
     auto profile2 = get_overclock_profile();*/
     //bool overclock_success = overclock(140, NVIDIA_CLOCK_SYSTEM_GPU);
 
-    std::cout << "GPU Clock: " << clocks.coreClock << std::endl 
-        << "Mem Clock: " << clocks.memoryClock << std::endl 
+    std::cout << "GPU Clock: " << clocks.coreClock << std::endl
+        << "Mem Clock: " << clocks.memoryClock << std::endl
         << "Usage: " << usages.coreUsage << "%" << std::endl
-        << "Voltage: " << gpu->getVoltage() << "mV" << std::endl;
+        << "Voltage: " << gpu->getVoltage() << "mV" << std::endl
+        << "Temp: " << gpu->getTemp() << "C" << std::endl;
 
     char buffer[1024];
     memset(buffer, 0, 1024);
@@ -88,6 +89,10 @@ int main()
     NVIDIA_GPU_VOLTAGE_DOMAINS_STATUS status;
     REINIT_NVIDIA_STRUCT(status);
     NV_ASSERT(NVIDIA_RAW_GpuGetVoltageDomainsStatus(handle, &status));
+
+    NVIDIA_GPU_THERMAL_SETTINGS_V2 settings;
+    REINIT_NVIDIA_STRUCT(settings);
+    NV_ASSERT(NVIDIA_RAW_GpuGetThermalSettings(handle, 0xF, &settings));
 
     return 0;
 }
