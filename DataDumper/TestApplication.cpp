@@ -92,7 +92,7 @@ int main()
 
     NVIDIA_GPU_THERMAL_SETTINGS_V2 settings;
     REINIT_NVIDIA_STRUCT(settings);
-    NV_ASSERT(NVIDIA_RAW_GpuGetThermalSettings(handle, 0xF, &settings));
+    NV_ASSERT(NVIDIA_RAW_GpuGetThermalSettings(handle, NVIDIA_THERMAL_TARGET_ALL, &settings));
 
     return 0;
 }

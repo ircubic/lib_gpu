@@ -12,4 +12,10 @@ DCB616C3,GetAllClockFrequencies,NV_PHYSICAL_GPU_HANDLE handle, struct NVIDIA_CLO
 70916171,GpuClientPowerPoliciesGetStatus,NV_PHYSICAL_GPU_HANDLE handle,NVIDIA_GPU_POWER_POLICIES_STATUS* policies_status
 0CEEE8E9F,GetFullName,NV_PHYSICAL_GPU_HANDLE handle,char* name_buf
 0C16C7E2C,GpuGetVoltageDomainsStatus,NV_PHYSICAL_GPU_HANDLE handle,NVIDIA_GPU_VOLTAGE_DOMAINS_STATUS* domains_status
-0E3640A56,GpuGetThermalSettings,NV_PHYSICAL_GPU_HANDLE handle,UINT32 sensorBitmap,NVIDIA_GPU_THERMAL_SETTINGS_V2* thermal_settings
+
+# Get the thermal settings of the GPU
+#
+# You have to set `sensor_index` to a value from the NVIDIA_THERMAL_TARGET enum,
+# either a single sensor, or the special value NVIDIA_THERMAL_TARGET_ALL for all
+# sensors present on the system.
+0E3640A56,GpuGetThermalSettings,NV_PHYSICAL_GPU_HANDLE handle,NVIDIA_THERMAL_TARGET sensor_index,NVIDIA_GPU_THERMAL_SETTINGS_V2* thermal_settings

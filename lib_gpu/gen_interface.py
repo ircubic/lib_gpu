@@ -19,8 +19,20 @@ with open(csv_file, 'rb') as file:
   output_header = '%s_gen.h' % (output_prefix)
   with open(output_header, 'wb') as headerfile:
     with open(output_file, 'wb') as bodyfile:
-      reader = csv.reader(row for row in file if not row.startswith('#'))
+      reader = csv.reader(file)
+      comment = []
       for row in reader:
+        if len(row) == 0 or len(row[0]) == 0:
+          continue
+
+        if row[0][0] == '#':
+          comment_row = ", ".join(row)[1:]
+          comment.append(' * ' + comment_row.strip())
+          continue
+
+        if len(row) < 2:
+          continue
+
         ID = row[0]
         function_name = 'NVIDIA_RAW_%s' % row[1]
         params = row[2:]
@@ -31,9 +43,9 @@ with open(csv_file, 'rb') as file:
           param_types.append(' '.join(parts[0:-1]))
           param_names.append(parts[-1])
 
-        param_type_str = ','.join(param_types)
-        param_name_str = ','.join(param_names)
-        param_list_str = ','.join(params)
+        param_type_str = ', '.join(param_types)
+        param_name_str = ', '.join(param_names)
+        param_list_str = ', '.join(params)
         pointer_type = 'NV_STATUS (*)(%s)' % param_type_str
         pointer_decl = 'NV_STATUS (*pointer)(%s)' % param_type_str
 
@@ -47,5 +59,9 @@ with open(csv_file, 'rb') as file:
         }
 
         bodyfile.write(FUNCTION_TEMPLATE % template_args)
+        if len(comment) > 0:
+          comment_str = '/**\n' + '\n'.join(comment) + '\n */\n'
+          headerfile.write(comment_str)
+          comment = []
         headerfile.write(FUNCTION_DECLARATION_TEMPLATE % template_args)
 
