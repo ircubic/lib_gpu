@@ -9,7 +9,9 @@
 
 int main()
 {
-
+    /**
+     * Just a debugging/data dumping application, excuse the mess :)
+     */
     GpuClocks clocks = get_clocks();
     GpuUsage usages = get_usages();
     GpuOverclockProfile profile = get_overclock_profile();
@@ -21,7 +23,7 @@ int main()
     new_overclock[GPU_OVERCLOCK_SETTING_AREA_OVERVOLT] = 87;
     bool success = gpu->setOverclock(new_overclock);
     auto profile2 = get_overclock_profile();*/
-    //bool overclock_success = overclock(140, NVIDIA_CLOCK_SYSTEM_GPU);
+    //bool overclock_success = overclock(140, GPU_OVERCLOCK_SETTING_AREA_MEMORY);
 
     std::cout << "GPU Clock: " << clocks.coreClock << std::endl
         << "Mem Clock: " << clocks.memoryClock << std::endl
