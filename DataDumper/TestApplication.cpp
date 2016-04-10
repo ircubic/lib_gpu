@@ -11,7 +11,7 @@ int main()
 {
 
     struct nvidia_simple_clocks clocks = get_clocks();
-    struct nvidia_simple_usages usages = get_usages();
+    GpuUsage usages = get_usages();
     GpuOverclockProfile profile = get_overclock_profile();
     auto api = NvidiaApi();
     auto gpu = api.getGPU(0);
@@ -22,7 +22,7 @@ int main()
     auto profile2 = get_overclock_profile();
     //bool overclock_success = overclock(140, NVIDIA_CLOCK_SYSTEM_GPU);
 
-    std::cout << "GPU Clock: " << clocks.coreClock << std::endl << "Mem Clock: " << clocks.memoryClock << std::endl << "Usage: " << usages.gpuUsage << "%" << std::endl;
+    std::cout << "GPU Clock: " << clocks.coreClock << std::endl << "Mem Clock: " << clocks.memoryClock << std::endl << "Usage: " << usages.coreUsage << "%" << std::endl;
 
     char buffer[1024];
     memset(buffer, 0, 1024);
