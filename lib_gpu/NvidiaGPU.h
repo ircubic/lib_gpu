@@ -19,6 +19,7 @@ public:
     float getVoltage();
     float getTemp();
 
+#pragma warning(disable: 4251)
     std::unique_ptr<GpuClocks> getClocks();
     std::unique_ptr<GpuOverclockProfile> getOverclockProfile();
     std::unique_ptr<GpuUsage> getUsage();
@@ -37,5 +38,5 @@ private:
 
     NvidiaGPU(const NV_PHYSICAL_GPU_HANDLE handle);
 };
-
+#pragma warning(default: 4251)
 

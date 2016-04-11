@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "GpuDatatypes.h"
 
-#define LIFT_UNIT(x) (x/1000.0)
+#define LIFT_UNIT(x) (x/1000.0f)
 
 const GpuOverclockSetting& GpuOverclockProfile::operator[](GPU_OVERCLOCK_SETTING_AREA area)
 {
