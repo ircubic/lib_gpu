@@ -42,7 +42,13 @@ bool success = init_simple_api();
 Then you can query values:
 
 ```C
-struct GpuClocks clocks = get_clocks();
+unsigned int gpu_count = get_gpu_count();
+char name[NVIDIA_SHORT_STRING_SIZE];
+bool success = get_name(0, name);
+struct GpuClocks clocks = get_clocks(0);
+if (success && clocks.coreClock) {
+  printf("GPU %s has the following core frequency: %.1f MHz", name, clocks.coreClock);
+}
 ```
 
 Or set some overclock values:
@@ -55,12 +61,15 @@ bool success = overclock(140, GPU_OVERCLOCK_SETTING_AREA_CORE) &&
 
 ### C++ interface
 
-The C++ interface is available from `lib_gpu.h` and starts with
-the `NvidiaApi` class and allows you to query values:
+The C++ interface is available from `lib_gpu.h` and starts with the `NvidiaApi`
+class and allows you to query values. An important thing to note is that values
+are only updated when you call `gpu->poll()`, so if you need up-to-date values,
+you have to remember to poll:
 
 ```C++
 auto api = NvidiaApi()
 auto gpu = api->getGPU(0);
+gpu->poll();
 auto clocks = gpu->getClocks();
 std::cout << "Current core frequency: " << clocks->coreClock << "MHz" << std::endl;
 auto usage = gpu->getUsage();
