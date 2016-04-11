@@ -133,7 +133,7 @@ bool get_name(unsigned int gpu_index, char name[NVIDIA_SHORT_STRING_SIZE])
             return copied > 0;
         });
     }
-    return false;;
+    return false;
 }
 
 }

@@ -12,7 +12,7 @@ extern "C" {
     NVLIB_EXPORTED bool init_simple_api();
     NVLIB_EXPORTED unsigned int get_gpu_count();
 
-    NVLIB_EXPORTED bool get_name(unsigned int gpu_index, char name[64]);
+    NVLIB_EXPORTED bool get_name(unsigned int gpu_index, char name[NVIDIA_SHORT_STRING_SIZE]);
     NVLIB_EXPORTED struct GpuClocks get_clocks(unsigned int gpu_index);
     NVLIB_EXPORTED struct GpuUsage get_usages(unsigned int gpu_index);
     NVLIB_EXPORTED struct GpuOverclockProfile get_overclock_profile(unsigned int gpu_index);
