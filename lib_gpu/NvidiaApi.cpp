@@ -47,7 +47,7 @@ unsigned int NvidiaApi::getGPUCount()
 std::shared_ptr<NvidiaGPU> NvidiaApi::getGPU(unsigned int index)
 {
     this->ensureGPUsLoaded();
-    return this->gpus.at(index);
+    return index < this->gpus.size() ? this->gpus.at(index) : nullptr;
 }
 
 bool NvidiaApi::ensureGPUsLoaded()
