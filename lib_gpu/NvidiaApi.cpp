@@ -63,9 +63,9 @@ bool NvidiaApi::ensureGPUsLoaded()
             }
             this->gpus.shrink_to_fit();
             this->GPUloaded = true;
-            return true;
+        } else {
+            this->GPUloaded = false;
         }
     }
-    this->GPUloaded = false;
-    return false;
+    return this->GPUloaded;
 }
