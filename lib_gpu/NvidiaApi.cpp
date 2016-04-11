@@ -21,7 +21,8 @@ NvidiaApi::~NvidiaApi()
     NVIDIA_RAW_NvidiaUnload();
 }
 
-std::vector<NV_PHYSICAL_GPU_HANDLE> load_gpu_handles() {
+std::vector<NV_PHYSICAL_GPU_HANDLE> load_gpu_handles()
+{
     std::vector<NV_PHYSICAL_GPU_HANDLE> handles(0);
     const int MAX_HANDLES = 64;
     NV_PHYSICAL_GPU_HANDLE list[MAX_HANDLES];
@@ -29,8 +30,7 @@ std::vector<NV_PHYSICAL_GPU_HANDLE> load_gpu_handles() {
     unsigned long count = 0;
 
     if (NVIDIA_RAW_GetPhysicalGPUHandles(list, &count) == NVAPI_OK) {
-        for (size_t i = 0; i < count; i++)
-        {
+        for (size_t i = 0; i < count; i++) {
             handles.push_back(list[i]);
         }
     }

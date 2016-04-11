@@ -4,10 +4,9 @@
 #include "nvidia_interface.h"
 #include <mutex>
 
-namespace lib_gpu
-{
-namespace nvidia_simple_api
-{
+namespace lib_gpu {
+namespace nvidia_simple_api {
+
 static std::unique_ptr<NvidiaApi> api{};
 static std::vector<ULONGLONG> last_poll;
 static std::mutex api_mutex;

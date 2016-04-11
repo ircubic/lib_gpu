@@ -138,7 +138,8 @@ typedef enum
     NVAPI_ECID_KEY_VERIFICATION_FAILED = -198,
 } NV_STATUS;
 
-typedef enum {
+typedef enum
+{
     NVIDIA_CLOCK_SYSTEM_GPU = 0,
     NVIDIA_CLOCK_SYSTEM_MEMORY = 4,
     NVIDIA_CLOCK_SYSTEM_SHADER = 7
@@ -147,7 +148,8 @@ typedef enum {
 /**
 * The known subsystems one can get utilization for.
 */
-typedef enum {
+typedef enum
+{
     NVIDIA_DYNAMIC_PSTATES_SYSTEM_GPU = 0,
     NVIDIA_DYNAMIC_PSTATES_SYSTEM_FB = 1,
     NVIDIA_DYNAMIC_PSTATES_SYSTEM_VID = 2,
@@ -167,10 +169,12 @@ NVIDIA_STRUCT_BEGIN(NVIDIA_GPU_PSTATES20_V2, 2)
 UINT32 state_count;
 UINT32 clock_count;
 UINT32 voltage_count;
-struct {
+struct
+{
     UINT32 state_num;
     UINT32 flags;
-    struct {
+    struct
+    {
         UINT32 domain;
         /**
          * Whether this clock is single- or dynamic-frequency.
@@ -197,13 +201,14 @@ struct {
      * The base voltage is the voltage at which the GPU will rest when it's in
      * a given powerstate. The array contains `voltage_count` entries.
      */
-    struct {
-        /**
-         * The voltage domain being described.
-         *
-         * This value is referenced by one or more `clocks` entries in their
-         * `voltage_domain` attributes.
-         */
+    struct
+    {
+/**
+ * The voltage domain being described.
+ *
+ * This value is referenced by one or more `clocks` entries in their
+ * `voltage_domain` attributes.
+ */
         UINT32 domain;
         /**
          * The base voltage delta can be edited if bit 0 of the flags is set.
@@ -216,9 +221,11 @@ struct {
         NVIDIA_DELTA_ENTRY volt_delta;
     } base_voltages[4];
 } states[16];
-struct {
+struct
+{
     UINT32 voltage_count;
-    struct {
+    struct
+    {
         UINT32 domain;
         UINT32 flags;
         UINT32 voltage;
@@ -233,7 +240,8 @@ NVIDIA_STRUCT_END
 * Indexed by NVIDIA_CLOCK_SYSTEM enum.
 */
 NVIDIA_STRUCT_BEGIN_EX(NVIDIA_CLOCK_FREQUENCIES, 2, clock_type)
-struct {
+struct
+{
     UINT32 present;
     UINT32 freq;
 } entries[32];
@@ -245,8 +253,10 @@ UINT32 domain_entries;
 UINT32 field3;
 UINT32 p_state_level;
 UINT32 field5;
-struct {
-    struct {
+struct
+{
+    struct
+    {
         UINT32 domain;
         UINT32 unknown1;
         UINT32 clock;
@@ -269,10 +279,11 @@ NVIDIA_STRUCT_END
 *
 */
 NVIDIA_STRUCT_BEGIN(NVIDIA_DYNAMIC_PSTATES, 1)
-struct {
-    /**
-    * Bitmap where the first bit being set determines whether this entry's value is valid.
-    */
+struct
+{
+/**
+* Bitmap where the first bit being set determines whether this entry's value is valid.
+*/
     UINT32 present;
     /**
     * The utilization of the subsystem in percent.
@@ -282,7 +293,8 @@ struct {
 NVIDIA_STRUCT_END
 
 NVIDIA_STRUCT_BEGIN(NVIDIA_GPU_POWER_POLICIES_INFO, 1)
-struct {
+struct
+{
     UINT32 unknown[3];
     UINT32 min_power;
     UINT32 unknown2[2];
@@ -294,7 +306,8 @@ struct {
 NVIDIA_STRUCT_END
 
 NVIDIA_STRUCT_BEGIN_EX(NVIDIA_GPU_POWER_POLICIES_STATUS, 1, count)
-struct {
+struct
+{
     UINT32 flags;
     UINT32 unknown;
     UINT32 power;
@@ -304,13 +317,15 @@ NVIDIA_STRUCT_END
 
 NVIDIA_STRUCT_BEGIN(NVIDIA_GPU_VOLTAGE_DOMAINS_STATUS, 1)
 UINT32 count;
-struct {
+struct
+{
     UINT32 voltage_domain;
     UINT32 current_voltage;
 } entries[16];
 NVIDIA_STRUCT_END
 
-typedef enum {
+typedef enum
+{
     NVIDIA_THERMAL_CONTROLLER_NONE,
     NVIDIA_THERMAL_CONTROLLER_GPU_INTERNAL,
     NVIDIA_THERMAL_CONTROLLER_ADM1032,
@@ -326,7 +341,8 @@ typedef enum {
     NVIDIA_THERMAL_CONTROLLER_UNKNOWN = -1
 } NVIDIA_THERMAL_CONTROLLER;
 
-typedef enum {
+typedef enum
+{
     NVIDIA_THERMAL_TARGET_NONE = 0,
     NVIDIA_THERMAL_TARGET_GPU = 1,
     NVIDIA_THERMAL_TARGET_MEMORY = 2,
@@ -340,7 +356,8 @@ typedef enum {
 } NVIDIA_THERMAL_TARGET;
 
 NVIDIA_STRUCT_BEGIN_EX(NVIDIA_GPU_THERMAL_SETTINGS_V2, 2, count)
-struct {
+struct
+{
     NVIDIA_THERMAL_CONTROLLER controller;
     INT32 default_minimum;
     INT32 default_max;

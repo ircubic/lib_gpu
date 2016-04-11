@@ -5,7 +5,8 @@
 namespace lib_gpu {
 
 template<typename T>
-std::unique_ptr<T> loadNvidiaStruct(NV_PHYSICAL_GPU_HANDLE const& handle, NV_STATUS (*loader)(NV_PHYSICAL_GPU_HANDLE, T*), void (*preparer)(T*) = nullptr) {
+std::unique_ptr<T> loadNvidiaStruct(NV_PHYSICAL_GPU_HANDLE const& handle, NV_STATUS(*loader)(NV_PHYSICAL_GPU_HANDLE, T*), void(*preparer)(T*) = nullptr)
+{
     auto struct_ = std::make_unique<T>();
     UINT32 version = struct_->version;
     memset(struct_.get(), 0, sizeof(T));
@@ -48,7 +49,7 @@ bool NvidiaGPU::poll()
     auto powerPoliciesStatus = loadGPU_POWER_POLICIES_STATUS(this->handle);
     auto voltageDomainsStatus = loadGPU_VOLTAGE_DOMAINS_STATUS(this->handle);
     auto thermalSettings = loadGPU_THERMAL_SETTINGS_V2(this->handle);
-    
+
     if (frequencies && dynamicPstates && pstates20 && powerPoliciesInfo &&
         powerPoliciesStatus && voltageDomainsStatus && thermalSettings) {
         this->frequencies = std::move(frequencies);
@@ -67,7 +68,7 @@ bool NvidiaGPU::poll()
 std::string NvidiaGPU::getName()
 {
     char name_buf[64];
-    
+
     if (NVIDIA_RAW_GetFullName(this->handle, name_buf) != NVAPI_OK) {
         name_buf[0] = '\0';
     }
@@ -78,8 +79,7 @@ std::string NvidiaGPU::getName()
 float NvidiaGPU::getVoltage()
 {
     if (this->voltageDomainsStatus && this->voltageDomainsStatus->count > 0) {
-        for (unsigned int i = 0; i < this->voltageDomainsStatus->count; i++)
-        {
+        for (unsigned int i = 0; i < this->voltageDomainsStatus->count; i++) {
             if (this->voltageDomainsStatus->entries[i].voltage_domain == 0) {
                 return this->voltageDomainsStatus->entries[i].current_voltage / 1000.0f;
             }
@@ -91,8 +91,7 @@ float NvidiaGPU::getVoltage()
 float NvidiaGPU::getTemp()
 {
     if (this->thermalSettings && this->thermalSettings->count > 0) {
-        for (unsigned int i = 0; i < this->thermalSettings->count; i++)
-        {
+        for (unsigned int i = 0; i < this->thermalSettings->count; i++) {
             if (this->thermalSettings->sensor[i].target == NVIDIA_THERMAL_TARGET_GPU) {
                 return (float) this->thermalSettings->sensor[i].current_temp;
             }
@@ -110,7 +109,7 @@ std::unique_ptr<GpuClocks> NvidiaGPU::getClocks()
         return -1;
     };
 
-    auto clocks = new GpuClocks {
+    auto clocks = new GpuClocks{
         fetcher(NVIDIA_CLOCK_SYSTEM_GPU),
         fetcher(NVIDIA_CLOCK_SYSTEM_MEMORY),
         fetcher(NVIDIA_CLOCK_SYSTEM_SHADER)
@@ -118,7 +117,8 @@ std::unique_ptr<GpuClocks> NvidiaGPU::getClocks()
     return std::unique_ptr<GpuClocks>(clocks);
 }
 
-int get_best_pstate_index(NVIDIA_GPU_PSTATES20_V2 const& pstates) {
+int get_best_pstate_index(NVIDIA_GPU_PSTATES20_V2 const& pstates)
+{
     unsigned int best_pstate_index = 0;
     unsigned int best_pstate_state = UINT_MAX;
     for (size_t i = 0; i < pstates.state_count; i++) {
@@ -139,8 +139,7 @@ std::unique_ptr<GpuOverclockProfile> NvidiaGPU::getOverclockProfile()
 
     unsigned int gpu_voltage_domain = UINT_MAX;
 
-    for (unsigned int i = 0; i < this->pstates20->clock_count; i++)
-    {
+    for (unsigned int i = 0; i < this->pstates20->clock_count; i++) {
         auto clock = best_pstate.clocks[i];
         switch (clock.domain) {
         case NVIDIA_CLOCK_SYSTEM_GPU:
@@ -161,8 +160,7 @@ std::unique_ptr<GpuOverclockProfile> NvidiaGPU::getOverclockProfile()
 
     if (gpu_voltage_domain < UINT_MAX) {
         auto over_volt = this->pstates20->over_volt;
-        for (unsigned int i = 0; i < over_volt.voltage_count; i++)
-        {
+        for (unsigned int i = 0; i < over_volt.voltage_count; i++) {
             if (over_volt.voltages[i].domain == gpu_voltage_domain) {
                 profile->overvolt = GpuOverclockSetting(over_volt.voltages[i].volt_delta, (over_volt.voltages[i].flags & 1));
             }
@@ -193,7 +191,7 @@ std::unique_ptr<GpuUsage> NvidiaGPU::getUsage()
 
 bool NvidiaGPU::setOverclock(const GpuOverclockDefinitionMap& overclockDefinitions)
 {
-    if(!this->dynamicPstates) {
+    if (!this->dynamicPstates) {
         if (!this->poll()) {
             return false;
         }
@@ -220,12 +218,12 @@ bool NvidiaGPU::setOverclock(const GpuOverclockDefinitionMap& overclockDefinitio
         int domain = INT_MAX;
         float new_value = var.second;
         UINT32 raw_new_value = (UINT32)(new_value * 1000);
-        
+
         auto old_setting = old_profile->operator[](var.first);
         if (!(old_setting.editable && new_value <= old_setting.maxValue && new_value >= old_setting.minValue)) {
             return false;
         }
-        
+
         if (var.first != GPU_OVERCLOCK_SETTING_AREA_OVERVOLT) {
             switch (var.first) {
             case GPU_OVERCLOCK_SETTING_AREA_CORE:
@@ -239,19 +237,17 @@ bool NvidiaGPU::setOverclock(const GpuOverclockDefinitionMap& overclockDefinitio
                 break;
             default:
                 return false;
-            }           
+            }
 
             is_clock = true;
         } else {
             is_clock = false;
-            for (unsigned int i = 0; i < this->pstates20->state_count; i++)
-            {
+            for (unsigned int i = 0; i < this->pstates20->state_count; i++) {
                 if (this->pstates20->states[i].state_num != pstate_num) {
                     continue;
                 }
 
-                for (unsigned int j = 0; j < this->pstates20->clock_count; j++)
-                {
+                for (unsigned int j = 0; j < this->pstates20->clock_count; j++) {
                     if (this->pstates20->states[i].clocks[j].domain == NVIDIA_CLOCK_SYSTEM_GPU &&
                         this->pstates20->states[i].clocks[j].type == 1) {
                         domain = this->pstates20->states[i].clocks[j].voltage_domain;
@@ -274,7 +270,7 @@ bool NvidiaGPU::setOverclock(const GpuOverclockDefinitionMap& overclockDefinitio
             ov_entry.domain = domain;
             ov_entry.volt_delta.value = raw_new_value;
         }
-        
+
     }
 
     return NVIDIA_RAW_SetPstates20(this->handle, &pstates) == NVAPI_OK;

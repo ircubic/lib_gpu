@@ -5,8 +5,7 @@
 #include "helpers.h"
 #include "NvidiaGpu.h"
 
-namespace lib_gpu
-{
+namespace lib_gpu {
 
 class NVLIB_EXPORTED NvidiaApi
 {

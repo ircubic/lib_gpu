@@ -4,10 +4,8 @@
 #include "GpuDatatypes.h"
 
 #ifdef __cplusplus
-namespace lib_gpu
-{
-namespace nvidia_simple_api
-{
+namespace lib_gpu {
+namespace nvidia_simple_api {
 extern "C" {
 #endif
 
