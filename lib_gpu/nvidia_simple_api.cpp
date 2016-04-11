@@ -22,7 +22,7 @@ bool ensureApi()
     return (bool)api;
 }
 
-std::shared_ptr<NvidiaGPU> getUpdatedGPU(int num = 0) {
+std::shared_ptr<NvidiaGPU> getUpdatedGPU(unsigned int num = 0) {
     if (ensureApi()) {
         auto gpu = api->getGPU(num);
         if (gpu) {
