@@ -47,54 +47,71 @@ std::shared_ptr<NvidiaGPU> getUpdatedGPU(unsigned int num = 0) {
     return nullptr;
 }
 
-struct GpuClocks get_clocks()
+unsigned int get_gpu_count()
 {
-    auto gpu = getUpdatedGPU();
-    if (gpu) {
-        auto clocks = gpu->getClocks();
-        if (clocks) {
-            return *clocks;
-        }
+    if (ensureApi()) {
+        return api->getGPUCount();
     }
 
-    return {};
+    return 0;
 }
 
-struct GpuUsage get_usages()
+template <typename T, typename F>
+T fetch_with_gpu(unsigned int gpu_index, F fetcher)
 {
-    auto gpu = getUpdatedGPU();
+    auto gpu = getUpdatedGPU(gpu_index);
     if (gpu) {
-        auto usage = gpu->getUsage();
-        if (usage) {
-            return *usage;
-        }
+        return fetcher(gpu);
     }
 
-    return {};
+    return{};
 }
 
-struct GpuOverclockProfile get_overclock_profile()
+template <typename T, typename P>
+T fetch_with_gpu(unsigned int gpu_index, P(*fetcher)(std::shared_ptr<NvidiaGPU>))
 {
-    if (auto gpu = getUpdatedGPU()) {
-        return *gpu->getOverclockProfile();
+    P ptr = fetch_with_gpu<P, decltype(fetcher)>(gpu_index, fetcher);
+    if (ptr) {
+        T real = *ptr;
+        return real;
+    } else {
+        return{};
     }
-
-    return {};
 }
 
-bool overclock(float new_delta, int area)
+
+struct GpuClocks get_clocks(unsigned int gpu_index)
 {
-    auto gpu = getUpdatedGPU();
-    bool success = false;
-    if (gpu) {
+    return fetch_with_gpu<GpuClocks,std::unique_ptr<GpuClocks>>(gpu_index, [](std::shared_ptr<NvidiaGPU> gpu) -> std::unique_ptr<GpuClocks> {
+        return gpu->getClocks();
+    });
+}
+
+struct GpuUsage get_usages(unsigned int gpu_index)
+{
+    return fetch_with_gpu<GpuUsage,std::unique_ptr<GpuUsage>>(gpu_index, [](std::shared_ptr<NvidiaGPU> gpu) -> std::unique_ptr<GpuUsage> {
+        return gpu->getUsage();
+    });
+}
+
+struct GpuOverclockProfile get_overclock_profile(unsigned int gpu_index)
+{
+    return fetch_with_gpu<GpuOverclockProfile, std::unique_ptr<GpuOverclockProfile>>(gpu_index, [](std::shared_ptr<NvidiaGPU> gpu) -> std::unique_ptr<GpuOverclockProfile> {
+        return gpu->getOverclockProfile();
+    });
+}
+
+bool overclock(unsigned int gpu_index, unsigned int area, float new_delta)
+{
+    return fetch_with_gpu<bool>(gpu_index, [&](std::shared_ptr<NvidiaGPU> gpu) -> bool {
         GpuOverclockDefinitionMap map;
         map[(GPU_OVERCLOCK_SETTING_AREA)area] = new_delta;
-        success = gpu->setOverclock(map);
+        bool success = gpu->setOverclock(map);
 
         // We force a poll just to ensure the overclock profile is correct
         gpu->poll();
-    }
-    return success;
+        return success;
+    });
 }
 
 bool init_simple_api()
