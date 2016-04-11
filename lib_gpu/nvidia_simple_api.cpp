@@ -118,3 +118,16 @@ bool init_simple_api()
 {
     return ensureApi();
 }
+
+bool get_name(unsigned int gpu_index, char name[NVIDIA_SHORT_STRING_SIZE])
+{
+    if (name) {
+        return fetch_with_gpu<bool>(gpu_index, [&](std::shared_ptr<NvidiaGPU> gpu) -> bool {
+            std::string str = gpu->getName();
+            size_t copied = str._Copy_s(name, NVIDIA_SHORT_STRING_SIZE - 1, str.size());
+            name[copied] = '\0';
+            return copied > 0;
+        });
+    }
+    return false;;
+}

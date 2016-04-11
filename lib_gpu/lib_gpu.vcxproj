@@ -132,6 +132,7 @@
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <DisableSpecificWarnings>4127</DisableSpecificWarnings>
       <SDLCheck>true</SDLCheck>
+      <AdditionalOptions>/WL %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

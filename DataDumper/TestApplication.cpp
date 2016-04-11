@@ -12,12 +12,14 @@ int main()
     /**
      * Just a debugging/data dumping application, excuse the mess :)
      */
-    GpuClocks clocks = get_clocks();
-    GpuUsage usages = get_usages();
-    GpuOverclockProfile profile = get_overclock_profile();
+    GpuOverclockProfile profile = get_overclock_profile(0);
+    GpuClocks clocks = get_clocks(0);
+    GpuClocks clocks1 = get_clocks(1);
+    GpuUsage usages = get_usages(0);
     auto api = NvidiaApi();
     auto gpu = api.getGPU(0);
     gpu->poll();
+    bool success = false;
     /*auto new_overclock = GpuOverclockDefinitionMap();
     new_overclock[GPU_OVERCLOCK_SETTING_AREA_CORE] = 140;
     new_overclock[GPU_OVERCLOCK_SETTING_AREA_OVERVOLT] = 87;
@@ -30,7 +32,7 @@ int main()
         << "Usage: " << usages.coreUsage << "%" << std::endl
         << "Voltage: " << gpu->getVoltage() << "mV" << std::endl
         << "Temp: " << gpu->getTemp() << "C" << std::endl;
-
+    
     char buffer[1024];
     memset(buffer, 0, 1024);
     NV_ASSERT(NVIDIA_RAW_GetVersionString(buffer));
@@ -43,6 +45,9 @@ int main()
 
 
     NV_ASSERT(NVIDIA_RAW_GetFullName(handle, buffer));
+    std::cout << buffer << std::endl;
+
+    success = get_name(0, buffer);
     std::cout << buffer << std::endl;
 
     std::cout << std::is_pod<GpuOverclockProfile>::value << std::endl;
