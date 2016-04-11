@@ -46,12 +46,9 @@ bool NvidiaGPU::poll()
     auto powerPoliciesStatus = loadGPU_POWER_POLICIES_STATUS(this->handle);
     auto voltageDomainsStatus = loadGPU_VOLTAGE_DOMAINS_STATUS(this->handle);
     auto thermalSettings = loadGPU_THERMAL_SETTINGS_V2(this->handle);
-
-    auto success = false;
-
+    
     if (frequencies && dynamicPstates && pstates20 && powerPoliciesInfo &&
         powerPoliciesStatus && voltageDomainsStatus && thermalSettings) {
-        success = true;
         this->frequencies = std::move(frequencies);
         this->dynamicPstates = std::move(dynamicPstates);
         this->pstates20 = std::move(pstates20);
@@ -59,9 +56,10 @@ bool NvidiaGPU::poll()
         this->powerPoliciesStatus = std::move(powerPoliciesStatus);
         this->voltageDomainsStatus = std::move(voltageDomainsStatus);
         this->thermalSettings = std::move(thermalSettings);
+        return true;
+    } else {
+        return false;
     }
-
-    return success;
 }
 
 std::string NvidiaGPU::getName()
