@@ -3,6 +3,8 @@
 
 #define LIFT_UNIT(x) (x/1000.0f)
 
+namespace lib_gpu {
+
 const GpuOverclockSetting& GpuOverclockProfile::operator[](GPU_OVERCLOCK_SETTING_AREA area)
 {
     switch (area) {
@@ -31,4 +33,6 @@ GpuOverclockSetting::GpuOverclockSetting(NVIDIA_DELTA_ENTRY const& delta, bool e
     this->currentValue = LIFT_UNIT(delta.value);
     this->minValue = LIFT_UNIT(delta.val_min);
     this->maxValue = LIFT_UNIT(delta.val_max);
+}
+
 }

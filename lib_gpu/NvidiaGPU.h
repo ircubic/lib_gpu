@@ -7,6 +7,7 @@
 #include "nvidia_interface_datatypes.h"
 #include "GpuDatatypes.h"
 
+namespace lib_gpu {
 typedef std::map<GPU_OVERCLOCK_SETTING_AREA, float> GpuOverclockDefinitionMap;
 
 class NVLIB_EXPORTED NvidiaGPU
@@ -40,3 +41,4 @@ private:
 };
 #pragma warning(default: 4251)
 
+}

@@ -16,10 +16,14 @@
 
 
 #pragma region Exports
-
+#ifdef __cplusplus
+namespace lib_gpu {
 extern "C" {
+#endif
     NVLIB_EXPORTED int init_library();
 #include "nvidia_interface_gen.h"
+#ifdef __cplusplus
 }
-
+}
+#endif
 #pragma endregion

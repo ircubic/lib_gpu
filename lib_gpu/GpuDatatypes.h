@@ -2,8 +2,13 @@
 
 #include "nvidia_interface_datatypes.h"
 
+#ifdef __cplusplus
+namespace lib_gpu {
 extern "C" {
-    typedef enum {
+#endif
+
+    typedef enum
+    {
         GPU_OVERCLOCK_SETTING_AREA_CORE,
         GPU_OVERCLOCK_SETTING_AREA_MEMORY,
         GPU_OVERCLOCK_SETTING_AREA_SHADER,
@@ -16,13 +21,17 @@ extern "C" {
         float currentValue;
         float minValue;
         float maxValue;
+#ifdef __cplusplus
         GpuOverclockSetting();
         GpuOverclockSetting(NVIDIA_DELTA_ENTRY const& delta, const bool editable = false);
+#endif
     };
 
     struct GpuOverclockProfile
     {
+#ifdef __cplusplus
         const GpuOverclockSetting& operator[](const GPU_OVERCLOCK_SETTING_AREA area);
+#endif
         GpuOverclockSetting coreOverclock;
         GpuOverclockSetting memoryOverclock;
         GpuOverclockSetting shaderOverclock;
@@ -43,4 +52,7 @@ extern "C" {
         float memoryClock;
         float shaderClock;
     };
+#ifdef __cplusplus
 }
+}
+#endif

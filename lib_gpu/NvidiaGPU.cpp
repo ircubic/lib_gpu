@@ -2,6 +2,8 @@
 #include "NvidiaGPU.h"
 #include "nvidia_interface.h"
 
+namespace lib_gpu {
+
 template<typename T>
 std::unique_ptr<T> loadNvidiaStruct(NV_PHYSICAL_GPU_HANDLE const& handle, NV_STATUS (*loader)(NV_PHYSICAL_GPU_HANDLE, T*), void (*preparer)(T*) = nullptr) {
     auto struct_ = std::make_unique<T>();
@@ -180,10 +182,10 @@ std::unique_ptr<GpuUsage> NvidiaGPU::getUsage()
 {
     if (this->dynamicPstates) {
         return std::unique_ptr<GpuUsage>(new GpuUsage{
-            ::getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_GPU, *this->dynamicPstates),
-            ::getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_FB, *this->dynamicPstates),
-            ::getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_VID, *this->dynamicPstates),
-            ::getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_BUS, *this->dynamicPstates)
+            getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_GPU, *this->dynamicPstates),
+            getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_FB, *this->dynamicPstates),
+            getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_VID, *this->dynamicPstates),
+            getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_BUS, *this->dynamicPstates)
         });
     }
     return nullptr;
@@ -281,4 +283,6 @@ bool NvidiaGPU::setOverclock(const GpuOverclockDefinitionMap& overclockDefinitio
 NvidiaGPU::NvidiaGPU(const NV_PHYSICAL_GPU_HANDLE handle)
 {
     this->handle = handle;
+}
+
 }

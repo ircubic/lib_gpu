@@ -7,6 +7,9 @@
 #include "nvidia_interface.h"
 #include "nvidia_simple_api.h"
 
+using namespace lib_gpu;
+using namespace lib_gpu::nvidia_simple_api;
+
 int main()
 {
     /**

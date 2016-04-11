@@ -5,6 +5,8 @@
 #include <algorithm>
 #include "NvidiaGPU.h"
 
+namespace lib_gpu {
+
 NvidiaApi::NvidiaApi()
 {
     int ret = init_library();
@@ -68,4 +70,6 @@ bool NvidiaApi::ensureGPUsLoaded()
         }
     }
     return this->GPUloaded;
+}
+
 }

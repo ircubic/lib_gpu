@@ -2,6 +2,8 @@
 #include "helpers.h"
 #include <basetsd.h>
 
+namespace lib_gpu {
+
 #define NVIDIA_STRUCT_VERSION(_struct, _version) (_version<<16 | sizeof(_struct))
 #define NVIDIA_STRUCT_BEGIN_EX(_name, _version, _flags) struct NVLIB_EXPORTED _name {\
 	UINT32 version = NVIDIA_STRUCT_VERSION(_name, _version);\
@@ -348,3 +350,5 @@ struct {
 NVIDIA_STRUCT_END
 
 #pragma endregion
+
+}

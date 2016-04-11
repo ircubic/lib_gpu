@@ -4,6 +4,10 @@
 #include "nvidia_interface.h"
 #include <mutex>
 
+namespace lib_gpu
+{
+namespace nvidia_simple_api
+{
 static std::unique_ptr<NvidiaApi> api{};
 static std::vector<ULONGLONG> last_poll;
 static std::mutex api_mutex;
@@ -12,7 +16,7 @@ static std::mutex api_mutex;
 const int MAX_POLLS_PER_SEC = 4;
 const ULONGLONG MIN_POLL_INTERVAL = 1000 / MAX_POLLS_PER_SEC;
 
-bool ensureApi() 
+bool ensureApi()
 {
     std::lock_guard<std::mutex> lock(api_mutex);
     if (!api) {
@@ -28,7 +32,8 @@ bool ensureApi()
     return (bool)api;
 }
 
-std::shared_ptr<NvidiaGPU> getUpdatedGPU(unsigned int num = 0) {
+std::shared_ptr<NvidiaGPU> getUpdatedGPU(unsigned int num = 0)
+{
     if (ensureApi()) {
         std::lock_guard<std::mutex> lock(api_mutex);
         auto gpu = api->getGPU(num);
@@ -82,14 +87,14 @@ T fetch_with_gpu(unsigned int gpu_index, P(*fetcher)(std::shared_ptr<NvidiaGPU>)
 
 struct GpuClocks get_clocks(unsigned int gpu_index)
 {
-    return fetch_with_gpu<GpuClocks,std::unique_ptr<GpuClocks>>(gpu_index, [](std::shared_ptr<NvidiaGPU> gpu) -> std::unique_ptr<GpuClocks> {
+    return fetch_with_gpu<GpuClocks, std::unique_ptr<GpuClocks>>(gpu_index, [](std::shared_ptr<NvidiaGPU> gpu) -> std::unique_ptr<GpuClocks> {
         return gpu->getClocks();
     });
 }
 
 struct GpuUsage get_usages(unsigned int gpu_index)
 {
-    return fetch_with_gpu<GpuUsage,std::unique_ptr<GpuUsage>>(gpu_index, [](std::shared_ptr<NvidiaGPU> gpu) -> std::unique_ptr<GpuUsage> {
+    return fetch_with_gpu<GpuUsage, std::unique_ptr<GpuUsage>>(gpu_index, [](std::shared_ptr<NvidiaGPU> gpu) -> std::unique_ptr<GpuUsage> {
         return gpu->getUsage();
     });
 }
@@ -130,4 +135,7 @@ bool get_name(unsigned int gpu_index, char name[NVIDIA_SHORT_STRING_SIZE])
         });
     }
     return false;;
+}
+
+}
 }
