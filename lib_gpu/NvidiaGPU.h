@@ -4,10 +4,10 @@
 #include <string>
 #include <map>
 #include "helpers.h"
-#include "nvidia_interface_datatypes.h"
 #include "GpuDatatypes.h"
 
 namespace lib_gpu {
+
 typedef std::map<GPU_OVERCLOCK_SETTING_AREA, float> GpuOverclockDefinitionMap;
 
 struct NvidiaGPUDataset;
@@ -26,6 +26,9 @@ public:
 
 #pragma warning(disable: 4251)
     std::unique_ptr<GpuClocks> getClocks();
+    std::unique_ptr<GpuClocks> getDefaultClocks();
+    std::unique_ptr<GpuClocks> getBaseClocks();
+    std::unique_ptr<GpuClocks> getBoostClocks();
     std::unique_ptr<GpuOverclockProfile> getOverclockProfile();
     std::unique_ptr<GpuUsage> getUsage();
 
@@ -34,6 +37,8 @@ public:
 private:
     NV_PHYSICAL_GPU_HANDLE handle;
     std::unique_ptr<NvidiaGPUDataset> dataset;
+
+    std::unique_ptr<GpuClocks> getClocks(NVIDIA_CLOCK_FREQUENCY_TYPE type, bool compensateForOverclock = false);
 
     NvidiaGPU(const NV_PHYSICAL_GPU_HANDLE handle);
 };

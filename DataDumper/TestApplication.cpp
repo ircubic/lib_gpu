@@ -12,6 +12,8 @@ using namespace lib_gpu::nvidia_simple_api;
 
 int main()
 {
+    int flags = _CrtSetDbgFlag( _CRTDBG_REPORT_FLAG );
+    _CrtSetDbgFlag(flags | _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_DELAY_FREE_MEM_DF);
     /**
      * Just a debugging/data dumping application, excuse the mess :)
      */
@@ -88,9 +90,15 @@ int main()
     NV_ASSERT(NVIDIA_RAW_GetAllClockFrequencies(handle, &boost_clock_freqs));
     NV_ASSERT(NVIDIA_RAW_GetAllClockFrequencies(handle, &base_clock_freqs));
 
+    std::cout << "Raw values:" << std::endl;
     std::cout << "Current clock: " << clock_freqs.entries[0].freq / 1000.0 << std::endl;
     std::cout << "Base clock: " << base_clock_freqs.entries[0].freq / 1000.0 << std::endl;
     std::cout << "Boost clock: " << boost_clock_freqs.entries[0].freq / 1000.0 << std::endl;
+
+    std::cout <<std::endl << "API values:" << std::endl;
+    std::cout << "Current clock: " << gpu->getClocks()->coreClock << std::endl;
+    std::cout << "Base clock: " << gpu->getBaseClocks()->coreClock << std::endl;
+    std::cout << "Boost clock: " << gpu->getBoostClocks()->coreClock << std::endl;
 
     NVIDIA_GPU_PERF_TABLE table;
     INIT_NVIDIA_STRUCT(table, 1);
@@ -104,6 +112,7 @@ int main()
     REINIT_NVIDIA_STRUCT(settings);
     NV_ASSERT(NVIDIA_RAW_GpuGetThermalSettings(handle, NVIDIA_THERMAL_TARGET_ALL, &settings));
 
+    int check = _CrtCheckMemory();
     return 0;
 }
 

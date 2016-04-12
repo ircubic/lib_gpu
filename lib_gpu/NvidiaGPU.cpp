@@ -1,12 +1,16 @@
 #include "pch.h"
+
+#include <array>
+
 #include "NvidiaGPU.h"
 #include "nvidia_interface.h"
+#include "nvidia_interface_datatypes.h"
 
 namespace lib_gpu {
 
 struct NvidiaGPUDataset
 {
-    NVIDIA_CLOCK_FREQUENCIES frequencies;
+    std::array<NVIDIA_CLOCK_FREQUENCIES, NVIDIA_CLOCK_FREQUENCY_TYPE_LAST> frequencies;
     NVIDIA_DYNAMIC_PSTATES dynamicPstates;
     NVIDIA_GPU_PSTATES20_V2 pstates20;
     NVIDIA_GPU_POWER_POLICIES_INFO powerPoliciesInfo;
@@ -62,8 +66,16 @@ NvidiaGPU::~NvidiaGPU()
 bool NvidiaGPU::poll()
 {
     auto newDataset = std::make_unique<NvidiaGPUDataset>();
-    if (
-        loadCLOCK_FREQUENCIES(this->handle, &newDataset->frequencies, NVIDIA_CLOCK_FREQUENCY_TYPE_CURRENT) &&
+    bool frequencySuccess = true;
+
+    unsigned int frequencyType = 0;
+    for (auto& frequencyStruct : newDataset->frequencies) {
+        if (!loadCLOCK_FREQUENCIES(this->handle, &frequencyStruct, (NVIDIA_CLOCK_FREQUENCY_TYPE)frequencyType++)) {
+            frequencySuccess = false;
+        }
+    }
+
+    if (frequencySuccess &&
         loadDYNAMIC_PSTATES(this->handle, &newDataset->dynamicPstates) &&
         loadGPU_PSTATES20_V2(this->handle, &newDataset->pstates20) &&
         loadGPU_POWER_POLICIES_INFO(this->handle, &newDataset->powerPoliciesInfo) &&
@@ -113,11 +125,29 @@ float NvidiaGPU::getTemp()
     return -1;
 }
 
-std::unique_ptr<GpuClocks> NvidiaGPU::getClocks()
+std::unique_ptr<GpuClocks> NvidiaGPU::getClocks(NVIDIA_CLOCK_FREQUENCY_TYPE type, bool compensateForOverclock)
 {
+    const auto& dataSource = this->dataset->frequencies[type];
+    auto overclockProfile = this->getOverclockProfile();
+
     auto fetcher = [&](NVIDIA_CLOCK_SYSTEM system) -> float {
-        if (this->dataset->frequencies.entries[system].present) {
-            return this->dataset->frequencies.entries[system].freq / 1000.0f;
+        if (dataSource.entries[system].present) {
+            float compensation = 0;
+            if (compensateForOverclock) {
+                switch (system) {
+                case NVIDIA_CLOCK_SYSTEM_GPU:
+                    compensation = overclockProfile->coreOverclock.currentValue;
+                    break;
+                case NVIDIA_CLOCK_SYSTEM_MEMORY:
+                    compensation = overclockProfile->memoryOverclock.currentValue;
+                    break;
+                case NVIDIA_CLOCK_SYSTEM_SHADER:
+                    compensation = overclockProfile->shaderOverclock.currentValue;
+                    break;
+                }
+            }
+
+            return dataSource.entries[system].freq / 1000.0f + compensation;
         }
         return -1;
     };
@@ -127,8 +157,29 @@ std::unique_ptr<GpuClocks> NvidiaGPU::getClocks()
         fetcher(NVIDIA_CLOCK_SYSTEM_MEMORY),
         fetcher(NVIDIA_CLOCK_SYSTEM_SHADER)
     };
+
     return std::unique_ptr<GpuClocks>(clocks);
 }
+
+std::unique_ptr<GpuClocks> NvidiaGPU::getClocks()
+{
+    return std::move(this->getClocks(NVIDIA_CLOCK_FREQUENCY_TYPE_CURRENT));
+}
+
+std::unique_ptr<GpuClocks> NvidiaGPU::getDefaultClocks()
+{
+    return this->getClocks(NVIDIA_CLOCK_FREQUENCY_TYPE_BASE);
+}
+
+std::unique_ptr<GpuClocks> NvidiaGPU::getBaseClocks()
+{
+    return this->getClocks(NVIDIA_CLOCK_FREQUENCY_TYPE_BASE, true);
+}
+std::unique_ptr<GpuClocks> NvidiaGPU::getBoostClocks()
+{
+    return this->getClocks(NVIDIA_CLOCK_FREQUENCY_TYPE_BOOST, true);
+}
+
 
 int get_best_pstate_index(NVIDIA_GPU_PSTATES20_V2 const& pstates)
 {
