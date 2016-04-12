@@ -4,22 +4,26 @@
 
 namespace lib_gpu {
 
-template<typename T>
-std::unique_ptr<T> loadNvidiaStruct(NV_PHYSICAL_GPU_HANDLE const& handle, NV_STATUS(*loader)(NV_PHYSICAL_GPU_HANDLE, T*), void(*preparer)(T*) = nullptr)
+template<typename T, typename F>
+std::unique_ptr<T> loadNvidiaStruct(NV_PHYSICAL_GPU_HANDLE const& handle, NV_STATUS(*loader)(NV_PHYSICAL_GPU_HANDLE, T*), F preparer)
 {
     auto struct_ = std::make_unique<T>();
     UINT32 version = struct_->version;
     memset(struct_.get(), 0, sizeof(T));
     struct_->version = version;
-    if (preparer) {
-        preparer(struct_.get());
-    }
+    preparer(struct_.get());
     return (*loader)(handle, struct_.get()) == NVAPI_OK ? std::move(struct_) : nullptr;
 }
 
-std::unique_ptr<NVIDIA_CLOCK_FREQUENCIES> loadCLOCK_FREQUENCIES(NV_PHYSICAL_GPU_HANDLE const& handle)
+template<typename T>
+std::unique_ptr<T> loadNvidiaStruct(NV_PHYSICAL_GPU_HANDLE const& handle, NV_STATUS(*loader)(NV_PHYSICAL_GPU_HANDLE, T*))
 {
-    return loadNvidiaStruct<NVIDIA_CLOCK_FREQUENCIES>(handle, NVIDIA_RAW_GetAllClockFrequencies, [](NVIDIA_CLOCK_FREQUENCIES* f) {f->clock_type = 0; });
+    return loadNvidiaStruct<T>(handle, loader, [](void*) {});
+}
+
+std::unique_ptr<NVIDIA_CLOCK_FREQUENCIES> loadCLOCK_FREQUENCIES(NV_PHYSICAL_GPU_HANDLE const& handle, NVIDIA_CLOCK_FREQUENCY_TYPE type)
+{
+    return loadNvidiaStruct<NVIDIA_CLOCK_FREQUENCIES>(handle, NVIDIA_RAW_GetAllClockFrequencies, [&](NVIDIA_CLOCK_FREQUENCIES* f) {f->clock_type = type; });
 }
 
 std::unique_ptr<NVIDIA_GPU_THERMAL_SETTINGS_V2> loadGPU_THERMAL_SETTINGS_V2(NV_PHYSICAL_GPU_HANDLE const& handle)
@@ -41,7 +45,8 @@ SIMPLE_NVIDIA_CALL(GPU_VOLTAGE_DOMAINS_STATUS, NVIDIA_RAW_GpuGetVoltageDomainsSt
 
 bool NvidiaGPU::poll()
 {
-    auto frequencies = loadCLOCK_FREQUENCIES(this->handle);
+    auto frequencies = loadCLOCK_FREQUENCIES(this->handle, NVIDIA_CLOCK_FREQUENCY_TYPE_CURRENT);
+
     auto dynamicPstates = loadDYNAMIC_PSTATES(this->handle);
     auto pstates20 = loadGPU_PSTATES20_V2(this->handle);
     //auto perfTable = std::make_shared<NVIDIA_GPU_PERF_TABLE>();
@@ -60,9 +65,9 @@ bool NvidiaGPU::poll()
         this->voltageDomainsStatus = std::move(voltageDomainsStatus);
         this->thermalSettings = std::move(thermalSettings);
         return true;
-    } else {
-        return false;
-    }
+    } 
+
+    return false;
 }
 
 std::string NvidiaGPU::getName()
