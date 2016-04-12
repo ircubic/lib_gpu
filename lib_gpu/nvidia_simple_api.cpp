@@ -39,12 +39,15 @@ std::shared_ptr<NvidiaGPU> getUpdatedGPU(unsigned int num = 0)
         if (gpu) {
             ULONGLONG now = GetTickCount64();
             auto last = last_poll[num];
+            bool poll_success = true;
             if (now - last > MIN_POLL_INTERVAL) {
-                gpu->poll();
+                poll_success = gpu->poll();
                 last_poll[num] = now;
             }
 
-            return gpu;
+            if (poll_success) {
+                return gpu;
+            }
         }
     }
 

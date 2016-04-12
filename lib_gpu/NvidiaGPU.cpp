@@ -225,8 +225,7 @@ bool NvidiaGPU::setOverclock(const GpuOverclockDefinitionMap& overclockDefinitio
 
     int clock = 0;
 
-    for each (const auto& var in overclockDefinitions)
-    {
+    for (const auto& var : overclockDefinitions) {
         bool is_clock = true;
         int domain = INT_MAX;
         float new_value = var.second;
