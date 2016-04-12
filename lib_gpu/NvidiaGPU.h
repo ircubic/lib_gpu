@@ -10,10 +10,14 @@
 namespace lib_gpu {
 typedef std::map<GPU_OVERCLOCK_SETTING_AREA, float> GpuOverclockDefinitionMap;
 
+struct NvidiaGPUDataset;
+
 class NVLIB_EXPORTED NvidiaGPU
 {
 public:
     friend class NvidiaApi;
+    ~NvidiaGPU();
+
     bool poll();
 
     std::string getName();
@@ -29,13 +33,7 @@ public:
 
 private:
     NV_PHYSICAL_GPU_HANDLE handle;
-    std::unique_ptr<NVIDIA_CLOCK_FREQUENCIES> frequencies;
-    std::unique_ptr<NVIDIA_DYNAMIC_PSTATES> dynamicPstates;
-    std::unique_ptr<NVIDIA_GPU_PSTATES20_V2> pstates20;
-    std::unique_ptr<NVIDIA_GPU_POWER_POLICIES_INFO> powerPoliciesInfo;
-    std::unique_ptr<NVIDIA_GPU_POWER_POLICIES_STATUS> powerPoliciesStatus;
-    std::unique_ptr<NVIDIA_GPU_VOLTAGE_DOMAINS_STATUS> voltageDomainsStatus;
-    std::unique_ptr<NVIDIA_GPU_THERMAL_SETTINGS_V2> thermalSettings;
+    std::unique_ptr<NvidiaGPUDataset> dataset;
 
     NvidiaGPU(const NV_PHYSICAL_GPU_HANDLE handle);
 };
