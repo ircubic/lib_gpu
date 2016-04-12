@@ -57,7 +57,6 @@ SIMPLE_NVIDIA_CALL(GPU_VOLTAGE_DOMAINS_STATUS, NVIDIA_RAW_GpuGetVoltageDomainsSt
 NvidiaGPU::~NvidiaGPU()
 {
     this->handle = nullptr;
-    this->dataset.release();
 }
 
 bool NvidiaGPU::poll()
