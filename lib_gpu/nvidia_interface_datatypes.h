@@ -234,6 +234,13 @@ struct
 } over_volt;
 NVIDIA_STRUCT_END
 
+typedef enum
+{
+    NVIDIA_CLOCK_FREQUENCY_TYPE_CURRENT = 0,
+    NVIDIA_CLOCK_FREQUENCY_TYPE_BASE = 1,
+    NVIDIA_CLOCK_FREQUENCY_TYPE_BOOST = 2
+} NVIDIA_CLOCK_FREQUENCY_TYPE;
+
 /**
 * The value for the clock frequencies for all available clocks.
 *
