@@ -36,7 +36,7 @@ std::vector<NV_PHYSICAL_GPU_HANDLE> load_gpu_handles()
     return handles;
 }
 
-unsigned int NvidiaApi::getGPUCount()
+unsigned int NvidiaApi::getGPUCount() const
 {
     if (this->ensureGPUsLoaded()) {
         return this->gpus.size();
@@ -44,13 +44,13 @@ unsigned int NvidiaApi::getGPUCount()
     return 0;
 }
 
-std::shared_ptr<NvidiaGPU> NvidiaApi::getGPU(unsigned int index)
+std::shared_ptr<NvidiaGPU> NvidiaApi::getGPU(const unsigned int index) const
 {
     this->ensureGPUsLoaded();
     return index < this->gpus.size() ? this->gpus.at(index) : nullptr;
 }
 
-bool NvidiaApi::ensureGPUsLoaded()
+bool NvidiaApi::ensureGPUsLoaded() const
 {
     if (!this->GPUloaded) {
         std::vector<NV_PHYSICAL_GPU_HANDLE> handles = load_gpu_handles();

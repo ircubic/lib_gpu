@@ -1,8 +1,9 @@
 #pragma once
 
-#include <memory>
-#include <string>
+#include "pch.h"
+
 #include <map>
+#include <atomic>
 #include "helpers.h"
 #include "GpuDatatypes.h"
 
@@ -20,25 +21,25 @@ public:
 
     bool poll();
 
-    std::string getName();
-    float getVoltage();
-    float getTemp();
+    std::string getName() const;
+    float getVoltage() const;
+    float getTemp() const;
 
 #pragma warning(disable: 4251)
-    std::unique_ptr<GpuClocks> getClocks();
-    std::unique_ptr<GpuClocks> getDefaultClocks();
-    std::unique_ptr<GpuClocks> getBaseClocks();
-    std::unique_ptr<GpuClocks> getBoostClocks();
-    std::unique_ptr<GpuOverclockProfile> getOverclockProfile();
-    std::unique_ptr<GpuUsage> getUsage();
+    std::unique_ptr<GpuClocks> getClocks() const;
+    std::unique_ptr<GpuClocks> getDefaultClocks() const;
+    std::unique_ptr<GpuClocks> getBaseClocks() const;
+    std::unique_ptr<GpuClocks> getBoostClocks() const;
+    std::unique_ptr<GpuOverclockProfile> getOverclockProfile() const;
+    std::unique_ptr<GpuUsage> getUsage() const;
 
     bool setOverclock(const GpuOverclockDefinitionMap& overclockDefinitions);
 
 private:
-    NV_PHYSICAL_GPU_HANDLE handle;
+    const NV_PHYSICAL_GPU_HANDLE handle;
     std::unique_ptr<NvidiaGPUDataset> dataset;
 
-    std::unique_ptr<GpuClocks> getClocks(NVIDIA_CLOCK_FREQUENCY_TYPE type, bool compensateForOverclock = false);
+    std::unique_ptr<GpuClocks> getClocks(NVIDIA_CLOCK_FREQUENCY_TYPE type, bool compensateForOverclock = false) const;
 
     NvidiaGPU(const NV_PHYSICAL_GPU_HANDLE handle);
 };
