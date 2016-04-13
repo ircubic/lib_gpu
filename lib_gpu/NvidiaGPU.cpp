@@ -181,7 +181,7 @@ std::unique_ptr<GpuClocks> NvidiaGPU::getBoostClocks()
 }
 
 
-int get_best_pstate_index(NVIDIA_GPU_PSTATES20_V2 const& pstates)
+auto get_best_pstate_index(NVIDIA_GPU_PSTATES20_V2 const& pstates)
 {
     unsigned int best_pstate_index = 0;
     unsigned int best_pstate_state = UINT_MAX;
@@ -197,7 +197,7 @@ int get_best_pstate_index(NVIDIA_GPU_PSTATES20_V2 const& pstates)
 std::unique_ptr<GpuOverclockProfile> NvidiaGPU::getOverclockProfile()
 {
     auto profile = std::make_unique<GpuOverclockProfile>();
-    int best_pstate_index = get_best_pstate_index(this->dataset->pstates20);
+    auto best_pstate_index = get_best_pstate_index(this->dataset->pstates20);
     auto best_pstate = this->dataset->pstates20.states[best_pstate_index];
     auto fetcher = [&](int i) { return GpuOverclockSetting(best_pstate.clocks[i].freq_delta, (best_pstate.flags & 1)); };
 
@@ -234,7 +234,7 @@ std::unique_ptr<GpuOverclockProfile> NvidiaGPU::getOverclockProfile()
     return profile;
 }
 
-float getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM system, const NVIDIA_DYNAMIC_PSTATES& pstates)
+auto getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM system, const NVIDIA_DYNAMIC_PSTATES& pstates)
 {
     auto state = pstates.pstates[system];
     return state.present ? state.value : -1.0f;
