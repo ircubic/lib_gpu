@@ -89,28 +89,28 @@ T fetch_with_gpu(unsigned int gpu_index, P(*fetcher)(std::shared_ptr<NvidiaGPU>)
 
 struct GpuClocks get_clocks(unsigned int gpu_index)
 {
-    return fetch_with_gpu<GpuClocks, std::unique_ptr<GpuClocks>>(gpu_index, [](std::shared_ptr<NvidiaGPU> gpu) -> std::unique_ptr<GpuClocks> {
+    return fetch_with_gpu<GpuClocks, std::unique_ptr<GpuClocks>>(gpu_index, [](auto gpu) {
         return gpu->getClocks();
     });
 }
 
 struct GpuUsage get_usages(unsigned int gpu_index)
 {
-    return fetch_with_gpu<GpuUsage, std::unique_ptr<GpuUsage>>(gpu_index, [](std::shared_ptr<NvidiaGPU> gpu) -> std::unique_ptr<GpuUsage> {
+    return fetch_with_gpu<GpuUsage, std::unique_ptr<GpuUsage>>(gpu_index, [](auto gpu) {
         return gpu->getUsage();
     });
 }
 
 struct GpuOverclockProfile get_overclock_profile(unsigned int gpu_index)
 {
-    return fetch_with_gpu<GpuOverclockProfile, std::unique_ptr<GpuOverclockProfile>>(gpu_index, [](std::shared_ptr<NvidiaGPU> gpu) -> std::unique_ptr<GpuOverclockProfile> {
+    return fetch_with_gpu<GpuOverclockProfile, std::unique_ptr<GpuOverclockProfile>>(gpu_index, [](auto gpu) {
         return gpu->getOverclockProfile();
     });
 }
 
 bool overclock(unsigned int gpu_index, unsigned int area, float new_delta)
 {
-    return fetch_with_gpu<bool>(gpu_index, [&](std::shared_ptr<NvidiaGPU> gpu) -> bool {
+    return fetch_with_gpu<bool>(gpu_index, [&](auto gpu) -> bool {
         GpuOverclockDefinitionMap map;
         map[(GPU_OVERCLOCK_SETTING_AREA)area] = new_delta;
         bool success = gpu->setOverclock(map);
@@ -129,7 +129,7 @@ bool init_simple_api()
 bool get_name(unsigned int gpu_index, char name[NVIDIA_SHORT_STRING_SIZE])
 {
     if (name) {
-        return fetch_with_gpu<bool>(gpu_index, [&](std::shared_ptr<NvidiaGPU> gpu) -> bool {
+        return fetch_with_gpu<bool>(gpu_index, [&](auto gpu) -> bool {
             std::string str = gpu->getName();
             size_t copied = str._Copy_s(name, NVIDIA_SHORT_STRING_SIZE - 1, str.size());
             name[copied] = '\0';
