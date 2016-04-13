@@ -9,16 +9,14 @@ namespace lib_gpu {
 
 NvidiaApi::NvidiaApi()
 {
-    int ret = init_library();
-    if (!ret || NVIDIA_RAW_NvidiaInit()) {
-        throw "OH NO";
+    if (!init_library()) {
+        throw std::runtime_error("Unable to load NVIDIA API");
     }
 }
 
 
 NvidiaApi::~NvidiaApi()
 {
-    NVIDIA_RAW_NvidiaUnload();
 }
 
 std::vector<NV_PHYSICAL_GPU_HANDLE> load_gpu_handles()

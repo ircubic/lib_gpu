@@ -248,6 +248,11 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">nvidia_interface_gen.h;nvidia_interface_gen.cpp</Outputs>
     </CustomBuild>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="gen_interface.py">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

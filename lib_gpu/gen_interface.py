@@ -4,7 +4,7 @@ import sys
 (_, csv_file, output_prefix) = sys.argv
 FUNCTION_TEMPLATE = '''NV_STATUS %(name)s(%(param_list)s) {
   static %(pointer_decl)s  = 0;
-  if(!pointer) {pointer = (%(pointer_type)s)nvidia_query(0x%(ID)s); }
+  if(!pointer) {pointer = (%(pointer_type)s)nvidia_handle->query(0x%(ID)s); }
   return (*pointer)(%(param_names)s);
 }
 
