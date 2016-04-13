@@ -8,4 +8,5 @@
 #pragma warning(push, 1)
 #include <windows.h>
 #include <string>
+#include <memory>
 #pragma warning(pop)
