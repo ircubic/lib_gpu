@@ -1,6 +1,7 @@
 #pragma once
 
 #include "helpers.h"
+#include "nvidia_interface_datatypes.h"
 #include "GpuDatatypes.h"
 
 #ifdef __cplusplus

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "GpuDatatypes.h"
+#include "nvidia_interface_datatypes.h"
 
 #define LIFT_UNIT(x) (x/1000.0f)
 

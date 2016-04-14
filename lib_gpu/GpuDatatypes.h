@@ -1,19 +1,20 @@
 #pragma once
 
-#include "nvidia_interface_datatypes.h"
+
 
 #ifdef __cplusplus
 namespace lib_gpu {
 extern "C" {
 #endif
+    struct NVIDIA_DELTA_ENTRY;
 
-    typedef enum
+    enum GPU_OVERCLOCK_SETTING_AREA
     {
         GPU_OVERCLOCK_SETTING_AREA_CORE,
         GPU_OVERCLOCK_SETTING_AREA_MEMORY,
         GPU_OVERCLOCK_SETTING_AREA_SHADER,
         GPU_OVERCLOCK_SETTING_AREA_OVERVOLT
-    } GPU_OVERCLOCK_SETTING_AREA;
+    };
 
     struct GpuOverclockSetting
     {

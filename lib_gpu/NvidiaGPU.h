@@ -5,13 +5,17 @@
 #include <map>
 #include <atomic>
 #include "helpers.h"
-#include "GpuDatatypes.h"
+#include "nvidia_interface_datatypes.h"
 
 namespace lib_gpu {
 
-typedef std::map<GPU_OVERCLOCK_SETTING_AREA, float> GpuOverclockDefinitionMap;
-
+enum GPU_OVERCLOCK_SETTING_AREA;
 struct NvidiaGPUDataset;
+struct GpuClocks;
+struct GpuOverclockProfile;
+struct GpuUsage;
+
+typedef std::map<GPU_OVERCLOCK_SETTING_AREA, float> GpuOverclockDefinitionMap;
 
 class NVLIB_EXPORTED NvidiaGPU
 {

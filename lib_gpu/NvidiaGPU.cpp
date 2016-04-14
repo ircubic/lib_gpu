@@ -1,8 +1,8 @@
 #include "pch.h"
 
 #include <array>
-
 #include "NvidiaGPU.h"
+#include "GpuDatatypes.h"
 #include "nvidia_interface.h"
 #include "nvidia_interface_datatypes.h"
 
