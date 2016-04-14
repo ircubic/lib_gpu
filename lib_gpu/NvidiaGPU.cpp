@@ -336,7 +336,13 @@ bool NvidiaGPU::setOverclock(const GpuOverclockDefinitionMap& overclockDefinitio
 
     }
 
-    return NVIDIA_RAW_SetPstates20(this->handle, &pstates) == NVAPI_OK;
+    if (NVIDIA_RAW_SetPstates20(this->handle, &pstates) == NVAPI_OK) {
+        this->poll();
+        return true;
+    } 
+    
+    return false;
+    
 }
 
 NvidiaGPU::NvidiaGPU(const NV_PHYSICAL_GPU_HANDLE handle) : handle(handle)
