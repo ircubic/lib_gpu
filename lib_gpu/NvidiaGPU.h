@@ -16,7 +16,7 @@ struct NvidiaGPUDataset;
 class NVLIB_EXPORTED NvidiaGPU
 {
 public:
-    friend class NvidiaApi;
+    NvidiaGPU(const NV_PHYSICAL_GPU_HANDLE handle);
     ~NvidiaGPU();
 
     bool poll();
@@ -40,8 +40,6 @@ private:
     std::unique_ptr<NvidiaGPUDataset> dataset;
 
     std::unique_ptr<GpuClocks> getClocks(NVIDIA_CLOCK_FREQUENCY_TYPE type, bool compensateForOverclock = false) const;
-
-    NvidiaGPU(const NV_PHYSICAL_GPU_HANDLE handle);
 };
 #pragma warning(default: 4251)
 

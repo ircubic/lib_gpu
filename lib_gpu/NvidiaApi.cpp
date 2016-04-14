@@ -47,7 +47,7 @@ unsigned int NvidiaApi::getGPUCount() const
 std::shared_ptr<NvidiaGPU> NvidiaApi::getGPU(const unsigned int index) const
 {
     this->ensureGPUsLoaded();
-    return index < this->gpus.size() ? this->gpus.at(index) : nullptr;
+    return index < this->gpus.size() ? this->gpus[index] : nullptr;
 }
 
 bool NvidiaApi::ensureGPUsLoaded() const
@@ -58,14 +58,12 @@ bool NvidiaApi::ensureGPUsLoaded() const
             this->gpus.clear();
             for each (NV_PHYSICAL_GPU_HANDLE handle in handles)
             {
-                auto gpu = std::shared_ptr<NvidiaGPU>(new NvidiaGPU(handle));
+                auto gpu = std::make_shared<NvidiaGPU>(handle);
                 this->gpus.push_back(gpu);
             }
-            this->gpus.shrink_to_fit();
+
             this->GPUloaded = true;
-        } else {
-            this->GPUloaded = false;
-        }
+        } 
     }
     return this->GPUloaded;
 }

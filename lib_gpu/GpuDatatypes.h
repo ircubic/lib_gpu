@@ -30,7 +30,7 @@ extern "C" {
     struct GpuOverclockProfile
     {
 #ifdef __cplusplus
-        const GpuOverclockSetting& operator[](const GPU_OVERCLOCK_SETTING_AREA area);
+        const GpuOverclockSetting& operator[](const GPU_OVERCLOCK_SETTING_AREA area) const;
 #endif
         GpuOverclockSetting coreOverclock;
         GpuOverclockSetting memoryOverclock;

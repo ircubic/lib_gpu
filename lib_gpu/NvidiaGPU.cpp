@@ -69,7 +69,7 @@ bool NvidiaGPU::poll()
 
     unsigned int frequencyType = 0;
     for (auto& frequencyStruct : newDataset->frequencies) {
-        if (!loadCLOCK_FREQUENCIES(this->handle, &frequencyStruct, (NVIDIA_CLOCK_FREQUENCY_TYPE)frequencyType++)) {
+        if (!loadCLOCK_FREQUENCIES(this->handle, &frequencyStruct, static_cast<NVIDIA_CLOCK_FREQUENCY_TYPE>(frequencyType++))) {
             frequencySuccess = false;
         }
     }
@@ -117,7 +117,7 @@ float NvidiaGPU::getTemp() const
     if (this->dataset && this->dataset->thermalSettings.count > 0) {
         for (unsigned int i = 0; i < this->dataset->thermalSettings.count; i++) {
             if (this->dataset->thermalSettings.sensor[i].target == NVIDIA_THERMAL_TARGET_GPU) {
-                return (float) this->dataset->thermalSettings.sensor[i].current_temp;
+                return static_cast<float>(this->dataset->thermalSettings.sensor[i].current_temp);
             }
         }
     }
@@ -150,14 +150,12 @@ std::unique_ptr<GpuClocks> NvidiaGPU::getClocks(NVIDIA_CLOCK_FREQUENCY_TYPE type
         }
         return -1;
     };
-
-    auto clocks = new GpuClocks{
+    
+    return std::unique_ptr<GpuClocks>{new GpuClocks{
         fetcher(NVIDIA_CLOCK_SYSTEM_GPU),
         fetcher(NVIDIA_CLOCK_SYSTEM_MEMORY),
         fetcher(NVIDIA_CLOCK_SYSTEM_SHADER)
-    };
-
-    return std::unique_ptr<GpuClocks>(clocks);
+    }};
 }
 
 std::unique_ptr<GpuClocks> NvidiaGPU::getClocks() const
@@ -198,7 +196,10 @@ std::unique_ptr<GpuOverclockProfile> NvidiaGPU::getOverclockProfile() const
     auto profile = std::make_unique<GpuOverclockProfile>();
     const auto best_pstate_index = get_best_pstate_index(this->dataset->pstates20);
     const auto& best_pstate = this->dataset->pstates20.states[best_pstate_index];
-    const auto fetcher = [&](int i) { return GpuOverclockSetting(best_pstate.clocks[i].freq_delta, (best_pstate.flags & 1)); };
+
+    const auto fetcher = [&](auto i) {
+        return GpuOverclockSetting(best_pstate.clocks[i].freq_delta, (best_pstate.flags & 1));
+    };
 
     auto gpu_voltage_domain = UINT_MAX;
 
@@ -242,12 +243,12 @@ auto getUsageForSystem(const NVIDIA_DYNAMIC_PSTATES_SYSTEM system, const NVIDIA_
 std::unique_ptr<GpuUsage> NvidiaGPU::getUsage() const
 {
     if (this->dataset) {
-        return std::unique_ptr<GpuUsage>(new GpuUsage{
+        return std::unique_ptr<GpuUsage>{new GpuUsage{
             getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_GPU, this->dataset->dynamicPstates),
             getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_FB, this->dataset->dynamicPstates),
             getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_VID, this->dataset->dynamicPstates),
             getUsageForSystem(NVIDIA_DYNAMIC_PSTATES_SYSTEM_BUS, this->dataset->dynamicPstates)
-        });
+        }};
     }
     return nullptr;
 }
@@ -279,7 +280,7 @@ bool NvidiaGPU::setOverclock(const GpuOverclockDefinitionMap& overclockDefinitio
         bool is_clock = true;
         auto domain = UINT_MAX;
         const auto new_value = var.second;
-        const auto raw_new_value = (UINT32)(new_value * 1000);
+        const auto raw_new_value = static_cast<UINT32>(new_value * 1000);
 
         const auto old_setting = old_profile->operator[](var.first);
         if (!(old_setting.editable && new_value <= old_setting.maxValue && new_value >= old_setting.minValue)) {

@@ -7,13 +7,14 @@ namespace lib_gpu {
 
 class NvidiaLibraryHandle
 {
+    typedef void *(FAR WINAPI *QueryPtr)(UINT32);
 public:
     NvidiaLibraryHandle()
     {
         bool success = false;
         library = LoadLibrary("nvapi.dll");
         if (library != nullptr) {
-            nvidia_query = (void *(*)(UINT32 ID))GetProcAddress(library, "nvapi_QueryInterface");
+            nvidia_query = reinterpret_cast<QueryPtr>(GetProcAddress(library, "nvapi_QueryInterface"));
             if (nvidia_query != nullptr) {
                 success = NVIDIA_RAW_NvidiaInit() == NVAPI_OK;
             }        
@@ -36,7 +37,7 @@ public:
     }
 
 private:
-    void * (*nvidia_query)(UINT32 ID);
+    QueryPtr nvidia_query;
     HMODULE library;
 };
 

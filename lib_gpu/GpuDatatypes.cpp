@@ -5,7 +5,7 @@
 
 namespace lib_gpu {
 
-const GpuOverclockSetting& GpuOverclockProfile::operator[](GPU_OVERCLOCK_SETTING_AREA area)
+const GpuOverclockSetting& GpuOverclockProfile::operator[](GPU_OVERCLOCK_SETTING_AREA area) const
 {
     switch (area) {
     case GPU_OVERCLOCK_SETTING_AREA_CORE:
