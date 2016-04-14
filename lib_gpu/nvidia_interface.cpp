@@ -7,7 +7,8 @@ namespace lib_gpu {
 
 class NvidiaLibraryHandle
 {
-    typedef void *(FAR WINAPI *QueryPtr)(UINT32);
+    typedef void *(*QueryPtr)(UINT32);
+    const UINT32 NVIDIA_INIT_ID = 0x0150E828;
 public:
     NvidiaLibraryHandle()
     {
@@ -16,7 +17,8 @@ public:
         if (library != nullptr) {
             nvidia_query = reinterpret_cast<QueryPtr>(GetProcAddress(library, "nvapi_QueryInterface"));
             if (nvidia_query != nullptr) {
-                success = NVIDIA_RAW_NvidiaInit() == NVAPI_OK;
+                auto init = static_cast<NV_STATUS(*)()>(nvidia_query(NVIDIA_INIT_ID));
+                success = init() == NVAPI_OK;
             }        
         }
 
