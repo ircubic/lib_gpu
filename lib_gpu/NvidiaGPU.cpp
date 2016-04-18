@@ -142,7 +142,7 @@ float NvidiaGPU::getVoltage() const
     if (this->dataset && this->dataset->voltageDomainsStatus.count > 0) {
         for (unsigned int i = 0; i < this->dataset->voltageDomainsStatus.count; i++) {
             if (this->dataset->voltageDomainsStatus.entries[i].voltage_domain == 0) {
-                return this->dataset->voltageDomainsStatus.entries[i].current_voltage / 1000.0f;
+                return this->dataset->voltageDomainsStatus.entries[i].current_voltage / 1'000'000.0f;
             }
         }
     }
