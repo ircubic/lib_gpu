@@ -15,6 +15,8 @@ struct GpuClocks;
 struct GpuOverclockProfile;
 struct GpuUsage;
 
+
+#pragma warning(disable: 4251)
 typedef std::map<GPU_OVERCLOCK_SETTING_AREA, float> GpuOverclockDefinitionMap;
 
 class NVLIB_EXPORTED NvidiaGPU
@@ -27,9 +29,9 @@ public:
 
     std::string getName() const;
     float getVoltage() const;
-    float getTemp() const;
+    float getTemperature() const;
+    unsigned long getGPUID() const;
 
-#pragma warning(disable: 4251)
     std::unique_ptr<GpuClocks> getClocks() const;
     std::unique_ptr<GpuClocks> getDefaultClocks() const;
     std::unique_ptr<GpuClocks> getBaseClocks() const;
@@ -41,6 +43,7 @@ public:
 
 private:
     const NV_PHYSICAL_GPU_HANDLE handle;
+    const unsigned long GPUID;
     std::unique_ptr<NvidiaGPUDataset> dataset;
 
     std::unique_ptr<GpuClocks> getClocks(NVIDIA_CLOCK_FREQUENCY_TYPE type, bool compensateForOverclock = false) const;

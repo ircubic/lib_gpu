@@ -12,8 +12,9 @@ class NVLIB_EXPORTED NvidiaApi
 public:
     NvidiaApi();
     ~NvidiaApi();
-    unsigned int getGPUCount() const;
-    std::shared_ptr<NvidiaGPU> getGPU(unsigned int index) const;
+    unsigned getGPUCount() const;
+    unsigned getIndexForGPUID(unsigned long GPUID) const;
+    std::shared_ptr<NvidiaGPU> getGPU(unsigned index) const;
 private:
 #pragma warning(disable: 4251)
     mutable std::vector<std::shared_ptr<NvidiaGPU>> gpus;

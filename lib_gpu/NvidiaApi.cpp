@@ -44,10 +44,27 @@ unsigned int NvidiaApi::getGPUCount() const
     return 0;
 }
 
-std::shared_ptr<NvidiaGPU> NvidiaApi::getGPU(const unsigned int index) const
+unsigned NvidiaApi::getIndexForGPUID(unsigned long GPUID) const
 {
-    this->ensureGPUsLoaded();
-    return index < this->gpus.size() ? this->gpus[index] : nullptr;
+    if (this->ensureGPUsLoaded()) {
+        auto index = 0u;
+        for (const auto& gpu : this->gpus) {
+            if (gpu->getGPUID() == GPUID) {
+                return index;
+            }
+            index++;
+        }
+    }
+
+    return UINT_MAX;
+}
+
+std::shared_ptr<NvidiaGPU> NvidiaApi::getGPU(const unsigned index) const
+{
+    if (this->ensureGPUsLoaded() && index < this->gpus.size()) {
+        return this->gpus[index];
+    }
+    return nullptr;
 }
 
 bool NvidiaApi::ensureGPUsLoaded() const

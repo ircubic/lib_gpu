@@ -1,6 +1,8 @@
 #include "pch.h"
 
 #include <array>
+#include <sstream>
+#include <iomanip>
 #include "NvidiaGPU.h"
 #include "GpuDatatypes.h"
 #include "nvidia_interface.h"
@@ -18,7 +20,7 @@ struct NvidiaGPUDataset
     NVIDIA_GPU_VOLTAGE_DOMAINS_STATUS voltageDomainsStatus;
     NVIDIA_GPU_THERMAL_SETTINGS_V2 thermalSettings;
 };
-
+#pragma region Data loading helpers
 
 template<typename T, typename F>
 bool loadNvidiaStruct(NV_PHYSICAL_GPU_HANDLE const& handle, T* structPtr, NV_STATUS(*loader)(NV_PHYSICAL_GPU_HANDLE, T*), F preparer)
@@ -58,6 +60,21 @@ SIMPLE_NVIDIA_CALL(GPU_POWER_POLICIES_INFO, NVIDIA_RAW_GpuClientPowerPoliciesGet
 SIMPLE_NVIDIA_CALL(GPU_POWER_POLICIES_STATUS, NVIDIA_RAW_GpuClientPowerPoliciesGetStatus);
 SIMPLE_NVIDIA_CALL(GPU_VOLTAGE_DOMAINS_STATUS, NVIDIA_RAW_GpuGetVoltageDomainsStatus);
 
+#pragma endregion
+
+unsigned long getGPUIDFromHandle(const NV_PHYSICAL_GPU_HANDLE handle)
+{
+    unsigned long value = 0;
+    if (NVIDIA_RAW_GetGPUIDFromPhysicalGPU(handle, &value) != NVAPI_OK) {
+        throw std::runtime_error("Unable to get GPUID for GPU");
+    }
+    return value;
+}
+
+NvidiaGPU::NvidiaGPU(const NV_PHYSICAL_GPU_HANDLE handle) : handle(handle), GPUID(getGPUIDFromHandle(handle))
+{
+}
+
 NvidiaGPU::~NvidiaGPU()
 {
 }
@@ -89,15 +106,21 @@ bool NvidiaGPU::poll()
     return false;
 }
 
-std::string NvidiaGPU::getName() const
+template <typename F>
+std::string getNvidiaString(NV_PHYSICAL_GPU_HANDLE handle, F function)
 {
-    char name_buf[64];
+    char name_buf[NVIDIA_SHORT_STRING_SIZE];
 
-    if (NVIDIA_RAW_GetFullName(this->handle, name_buf) != NVAPI_OK) {
+    if (function(handle, name_buf) != NVAPI_OK) {
         name_buf[0] = '\0';
     }
 
     return std::string(name_buf);
+}
+
+std::string NvidiaGPU::getName() const
+{
+    return getNvidiaString(handle, NVIDIA_RAW_GetFullName);
 }
 
 float NvidiaGPU::getVoltage() const
@@ -112,7 +135,7 @@ float NvidiaGPU::getVoltage() const
     return -1;
 }
 
-float NvidiaGPU::getTemp() const
+float NvidiaGPU::getTemperature() const
 {
     if (this->dataset && this->dataset->thermalSettings.count > 0) {
         for (unsigned int i = 0; i < this->dataset->thermalSettings.count; i++) {
@@ -122,6 +145,11 @@ float NvidiaGPU::getTemp() const
         }
     }
     return -1;
+}
+
+unsigned long NvidiaGPU::getGPUID() const
+{
+    return this->GPUID;
 }
 
 std::unique_ptr<GpuClocks> NvidiaGPU::getClocks(NVIDIA_CLOCK_FREQUENCY_TYPE type, bool compensateForOverclock) const
@@ -343,10 +371,6 @@ bool NvidiaGPU::setOverclock(const GpuOverclockDefinitionMap& overclockDefinitio
     
     return false;
     
-}
-
-NvidiaGPU::NvidiaGPU(const NV_PHYSICAL_GPU_HANDLE handle) : handle(handle)
-{
 }
 
 }

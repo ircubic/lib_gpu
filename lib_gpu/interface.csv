@@ -2,7 +2,8 @@
 D22BDD7E,NvidiaUnload,
 0E5AC921F,GetPhysicalGPUHandles,NV_PHYSICAL_GPU_HANDLE* handle_buf,unsigned long* handle_count
 01053FA5,GetVersionString,char * string
-0E5AC921F,GetGPUIDFromPhysicalGPU,NV_PHYSICAL_GPU_HANDLE handle,unsigned long* gpu_id
+5380AD1A,GetPhysicalGPUfromGPUID,unsigned long gpu_id, NV_PHYSICAL_GPU_HANDLE* handle
+6533EA3E,GetGPUIDFromPhysicalGPU,NV_PHYSICAL_GPU_HANDLE handle, unsigned long* gpu_id
 6FF81213,GetPstates20,NV_PHYSICAL_GPU_HANDLE handle,struct NVIDIA_GPU_PSTATES20_V2* pstates
 0F4DAE6B,SetPstates20,NV_PHYSICAL_GPU_HANDLE handle,struct NVIDIA_GPU_PSTATES20_V2* pstates
 

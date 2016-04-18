@@ -11,14 +11,22 @@ extern "C" {
 #endif
 
     NVLIB_EXPORTED bool init_simple_api();
-    NVLIB_EXPORTED unsigned int get_gpu_count();
+    NVLIB_EXPORTED unsigned get_gpu_count();
+    NVLIB_EXPORTED unsigned get_index_for_GPUID(unsigned long GPUID);
 
-    NVLIB_EXPORTED bool get_name(unsigned int gpu_index, char name[NVIDIA_SHORT_STRING_SIZE]);
-    NVLIB_EXPORTED struct GpuClocks get_clocks(unsigned int gpu_index);
-    NVLIB_EXPORTED struct GpuUsage get_usages(unsigned int gpu_index);
-    NVLIB_EXPORTED struct GpuOverclockProfile get_overclock_profile(unsigned int gpu_index);
+    NVLIB_EXPORTED bool get_name(unsigned gpu_index, char name[NVIDIA_SHORT_STRING_SIZE]);
 
-    NVLIB_EXPORTED bool overclock(unsigned int gpu_index, unsigned int clock, float new_delta);
+    NVLIB_EXPORTED unsigned long getGPUID(unsigned gpu_index);
+    NVLIB_EXPORTED float getVoltage(unsigned gpu_index);
+    NVLIB_EXPORTED float getTemperature(unsigned gpu_index);
+    NVLIB_EXPORTED struct GpuClocks get_clocks(unsigned gpu_index);
+    NVLIB_EXPORTED struct GpuClocks get_default_clocks(unsigned gpu_index);
+    NVLIB_EXPORTED struct GpuClocks get_base_clocks(unsigned gpu_index);
+    NVLIB_EXPORTED struct GpuClocks get_boost_clocks(unsigned gpu_index);
+    NVLIB_EXPORTED struct GpuUsage get_usages(unsigned gpu_index);
+    NVLIB_EXPORTED struct GpuOverclockProfile get_overclock_profile(unsigned gpu_index);
+
+    NVLIB_EXPORTED bool overclock(unsigned gpu_index, unsigned clock, float new_delta);
 
 #ifdef __cplusplus
 }
