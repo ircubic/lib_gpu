@@ -36,7 +36,9 @@ int main()
         << "Mem Clock: " << clocks.memoryClock << std::endl
         << "Usage: " << usages.coreUsage << "%" << std::endl
         << "Voltage: " << gpu->getVoltage() << "mV" << std::endl
-        << "Temp: " << gpu->getTemp() << "C" << std::endl;
+        << "Temp: " << gpu->getTemperature() << "C" << std::endl
+        << "GPUID: " << gpu->getGPUID() << std::endl
+        << "Serial Number: " << gpu->getSerialNumber() << std::endl;
     
     char buffer[1024];
     memset(buffer, 0, 1024);

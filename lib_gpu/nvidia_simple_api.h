@@ -15,6 +15,7 @@ extern "C" {
     NVLIB_EXPORTED unsigned get_index_for_GPUID(unsigned long GPUID);
 
     NVLIB_EXPORTED bool get_name(unsigned gpu_index, char name[NVIDIA_SHORT_STRING_SIZE]);
+    NVLIB_EXPORTED bool get_serial_number(unsigned gpu_index, char serial[NVIDIA_SHORT_STRING_SIZE]);
 
     NVLIB_EXPORTED unsigned long getGPUID(unsigned gpu_index);
     NVLIB_EXPORTED float getVoltage(unsigned gpu_index);

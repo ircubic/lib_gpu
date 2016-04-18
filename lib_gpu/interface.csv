@@ -26,3 +26,4 @@ DCB616C3,GetAllClockFrequencies,NV_PHYSICAL_GPU_HANDLE handle, struct NVIDIA_CLO
 # either a single sensor, or the special value NVIDIA_THERMAL_TARGET_ALL for all
 # sensors present on the system.
 0E3640A56,GpuGetThermalSettings,NV_PHYSICAL_GPU_HANDLE handle,NVIDIA_THERMAL_TARGET sensor_index,NVIDIA_GPU_THERMAL_SETTINGS_V2* thermal_settings
+14B83A5F,GpuGetSerialNumber,NV_PHYSICAL_GPU_HANDLE handle, char* serial_buf

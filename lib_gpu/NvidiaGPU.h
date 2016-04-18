@@ -28,6 +28,7 @@ public:
     bool poll();
 
     std::string getName() const;
+    std::string getSerialNumber() const;
     float getVoltage() const;
     float getTemperature() const;
     unsigned long getGPUID() const;

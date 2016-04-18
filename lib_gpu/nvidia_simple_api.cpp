@@ -178,5 +178,18 @@ bool get_name(unsigned gpu_index, char name[NVIDIA_SHORT_STRING_SIZE])
     return false;
 }
 
+bool get_serial_number(unsigned gpu_index, char serial[NVIDIA_SHORT_STRING_SIZE])
+{
+    if (serial) {
+        return fetch_with_gpu<bool>(gpu_index, [&](auto gpu) {
+            std::string str = gpu->getSerialNumber();
+            size_t copied = str._Copy_s(serial, NVIDIA_SHORT_STRING_SIZE - 1, str.size());
+            serial[copied] = '\0';
+            return copied > 0;
+        });
+    }
+    return false;
+}
+
 }
 }

@@ -20,8 +20,8 @@ struct NvidiaGPUDataset
     NVIDIA_GPU_VOLTAGE_DOMAINS_STATUS voltageDomainsStatus;
     NVIDIA_GPU_THERMAL_SETTINGS_V2 thermalSettings;
 };
-#pragma region Data loading helpers
 
+#pragma region Data loading helpers
 template<typename T, typename F>
 bool loadNvidiaStruct(NV_PHYSICAL_GPU_HANDLE const& handle, T* structPtr, NV_STATUS(*loader)(NV_PHYSICAL_GPU_HANDLE, T*), F preparer)
 {
@@ -121,6 +121,20 @@ std::string getNvidiaString(NV_PHYSICAL_GPU_HANDLE handle, F function)
 std::string NvidiaGPU::getName() const
 {
     return getNvidiaString(handle, NVIDIA_RAW_GetFullName);
+}
+
+std::string NvidiaGPU::getSerialNumber() const
+{
+    auto str = getNvidiaString(handle, NVIDIA_RAW_GpuGetSerialNumber);
+
+    auto buf = std::stringstream{};
+    buf << std::hex << std::setfill('0') << std::uppercase;
+    for (auto chr : str) {
+        auto byte = static_cast<uint8_t>(chr);
+        // have to recast to at least 16 bits, otherwise it'll print as letters
+        buf << std::setw(2) << static_cast<uint16_t>(byte);
+    }
+    return buf.str();
 }
 
 float NvidiaGPU::getVoltage() const
