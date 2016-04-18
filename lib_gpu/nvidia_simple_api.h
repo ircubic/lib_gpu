@@ -18,8 +18,8 @@ extern "C" {
     NVLIB_EXPORTED bool get_serial_number(unsigned gpu_index, char serial[NVIDIA_SHORT_STRING_SIZE]);
 
     NVLIB_EXPORTED unsigned long getGPUID(unsigned gpu_index);
-    NVLIB_EXPORTED float getVoltage(unsigned gpu_index);
-    NVLIB_EXPORTED float getTemperature(unsigned gpu_index);
+    NVLIB_EXPORTED float get_voltage(unsigned gpu_index);
+    NVLIB_EXPORTED float get_temperature(unsigned gpu_index);
     NVLIB_EXPORTED struct GpuClocks get_clocks(unsigned gpu_index);
     NVLIB_EXPORTED struct GpuClocks get_default_clocks(unsigned gpu_index);
     NVLIB_EXPORTED struct GpuClocks get_base_clocks(unsigned gpu_index);

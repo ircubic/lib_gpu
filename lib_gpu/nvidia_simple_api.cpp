@@ -93,14 +93,14 @@ unsigned long getGPUID(unsigned gpu_index)
     });
 }
 
-float getVoltage(unsigned gpu_index)
+float get_voltage(unsigned gpu_index)
 {
     return fetch_with_gpu<float>(gpu_index, [](auto gpu) {
         return gpu->getVoltage();
     });
 }
 
-float getTemperature(unsigned gpu_index)
+float get_temperature(unsigned gpu_index)
 {
     return fetch_with_gpu<float>(gpu_index, [](auto gpu) {
         return gpu->getTemperature();
