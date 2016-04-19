@@ -123,6 +123,7 @@ int dump()
     memset(buffer, 0, 1024);
 
     init_library();
+    auto api = NvidiaApi();
 
     auto separator = std::string(72, '=');
     auto fout = std::ofstream{ "gpu_dump.txt", std::ofstream::trunc };
@@ -137,10 +138,15 @@ int dump()
     unsigned long count;
     NV_ASSERT(NVIDIA_RAW_GetPhysicalGPUHandles(handles, &count));
     for (auto i = 0u; i < count; i++) {
+        auto gpu = api.getGPU(i);
+        gpu->poll();
         NV_PHYSICAL_GPU_HANDLE handle = handles[i];
 
-        NV_ASSERT(NVIDIA_RAW_GetFullName(handle, buffer));
-        fout << "GPU " << i << "(" << buffer << ") " << std::endl << separator << std::endl << std::endl;
+        
+        fout << "GPU " << i << "(" << gpu->getName() << ") " << std::endl
+            << "Serial: " << gpu->getSerialNumber() << std::endl
+            << "GPUID: " << gpu->getGPUID() << std::endl
+            << separator << std::endl << std::endl;
 
         NVIDIA_GPU_POWER_POLICIES_INFO p;
         REINIT_NVIDIA_STRUCT(p);
