@@ -1,6 +1,8 @@
 #pragma once
 #include "helpers.h"
 #include <basetsd.h>
+#include <iomanip>
+#include <ostream>
 
 namespace lib_gpu {
 
@@ -376,4 +378,8 @@ NVIDIA_STRUCT_END
 
 #pragma endregion
 
+#pragma region Structure printers
+
+
+#pragma endregion
 }

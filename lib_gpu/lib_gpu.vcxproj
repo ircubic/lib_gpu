@@ -210,6 +210,7 @@
     <ClInclude Include="NvidiaGPU.h" />
     <ClInclude Include="nvidia_interface.h" />
     <ClInclude Include="nvidia_interface_datatypes.h" />
+    <ClInclude Include="nvidia_interface_datatype_dumpers.h" />
     <ClInclude Include="nvidia_interface_gen.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -225,6 +226,7 @@
     <ClCompile Include="NvidiaApi.cpp" />
     <ClCompile Include="NvidiaGPU.cpp" />
     <ClCompile Include="nvidia_interface.cpp" />
+    <ClCompile Include="nvidia_interface_datatype_dumpers.cpp" />
     <ClCompile Include="nvidia_interface_gen.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
