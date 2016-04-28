@@ -62,6 +62,8 @@ SIMPLE_NVIDIA_CALL(GPU_VOLTAGE_DOMAINS_STATUS, NVIDIA_RAW_GpuGetVoltageDomainsSt
 
 #pragma endregion
 
+#pragma region Other helpers
+
 unsigned long getGPUIDFromHandle(const NV_PHYSICAL_GPU_HANDLE handle)
 {
     unsigned long value = 0;
@@ -70,6 +72,156 @@ unsigned long getGPUIDFromHandle(const NV_PHYSICAL_GPU_HANDLE handle)
     }
     return value;
 }
+
+template <typename F>
+std::string getNvidiaString(NV_PHYSICAL_GPU_HANDLE handle, F function)
+{
+    char name_buf[NVIDIA_SHORT_STRING_SIZE];
+
+    if (function(handle, name_buf) != NVAPI_OK) {
+        name_buf[0] = '\0';
+    }
+
+    return std::string(name_buf);
+}
+
+NVIDIA_DELTA_ENTRY getPowerLimit(const NVIDIA_GPU_POWER_POLICIES_INFO& info, const NVIDIA_GPU_POWER_POLICIES_STATUS& status, unsigned pstate = 0)
+{
+    // We make a slightly bold assumption that info and status have the same entries
+    for (auto i = 0u; i < status.count; i++) {
+        const auto& statusEntry = status.entries[i];
+        const auto& infoEntry = info.entries[i];
+        if (statusEntry.pstate == pstate) {
+            return NVIDIA_DELTA_ENTRY{
+                static_cast<INT32>(statusEntry.power),
+                static_cast<INT32>(infoEntry.min_power),
+                static_cast<INT32>(infoEntry.max_power)
+            };
+        }
+    }
+
+    return {};
+}
+
+auto get_best_pstate_index(NVIDIA_GPU_PSTATES20_V2 const& pstates)
+{
+    auto best_pstate_index = 0u;
+    auto best_pstate_state = UINT_MAX;
+    for (auto i = 0u; i < pstates.state_count; i++) {
+        if (pstates.states[i].state_num < best_pstate_state) {
+            best_pstate_index = i;
+            best_pstate_state = pstates.states[i].state_num;
+        }
+    }
+    return best_pstate_index;
+}
+
+auto getUsageForSystem(const NVIDIA_DYNAMIC_PSTATES_SYSTEM system, const NVIDIA_DYNAMIC_PSTATES& pstates)
+{
+    const auto state = pstates.pstates[system];
+    return state.present ? state.value : -1.0f;
+}
+
+bool makeNewPstates20(const GpuOverclockDefinitionMap& overclockDefinitions, const GpuOverclockProfile& old_profile, const NvidiaGPUDataset& dataset, NVIDIA_GPU_PSTATES20_V2& pstates)
+{
+    const auto overvolt_count = overclockDefinitions.find(GPU_OVERCLOCK_SETTING_AREA_OVERVOLT) != overclockDefinitions.end() ? 1u : 0u;
+    auto clock_count = 0u;
+
+    const UINT32 pstate_num = 0;
+    auto& state = pstates.states[0];
+    state.state_num = pstate_num;
+
+    int clock = 0;
+
+    for (const auto& var : overclockDefinitions) {
+        bool is_clock = true;
+        auto domain = UINT_MAX;
+        const auto new_value = var.second;
+        const auto raw_new_value = static_cast<UINT32>(new_value * 1000);
+        const auto area = var.first;
+
+        const auto old_setting = old_profile[area];
+        if (!(old_setting.editable && new_value <= old_setting.maxValue && new_value >= old_setting.minValue)) {
+            return false;
+        }
+
+        if (area >= GPU_OVERCLOCK_SETTING_AREA_CORE && area <= GPU_OVERCLOCK_SETTING_AREA_SHADER) {
+            switch (var.first) {
+            case GPU_OVERCLOCK_SETTING_AREA_CORE:
+                domain = NVIDIA_CLOCK_SYSTEM_GPU;
+                break;
+            case GPU_OVERCLOCK_SETTING_AREA_MEMORY:
+                domain = NVIDIA_CLOCK_SYSTEM_MEMORY;
+                break;
+            case GPU_OVERCLOCK_SETTING_AREA_SHADER:
+                domain = NVIDIA_CLOCK_SYSTEM_SHADER;
+                break;
+            default:
+                return false;
+            }
+
+            clock_count++;
+            is_clock = true;
+        } else if (area == GPU_OVERCLOCK_SETTING_AREA_OVERVOLT) {
+            is_clock = false;
+            for (auto i = 0u; i < dataset.pstates20.state_count; i++) {
+                if (dataset.pstates20.states[i].state_num != pstate_num) {
+                    continue;
+                }
+
+                for (auto j = 0u; j < dataset.pstates20.clock_count; j++) {
+                    if (dataset.pstates20.states[i].clocks[j].domain == NVIDIA_CLOCK_SYSTEM_GPU &&
+                        dataset.pstates20.states[i].clocks[j].type == 1) {
+                        domain = dataset.pstates20.states[i].clocks[j].voltage_domain;
+                    }
+                }
+            }
+        } else {
+            continue;
+        }
+
+        if (domain == INT_MAX) {
+            return false;
+        }
+
+        if (is_clock) {
+            auto& clock_entry = state.clocks[clock++];
+            clock_entry.domain = domain;
+            clock_entry.freq_delta.value = raw_new_value;
+        } else {
+            pstates.over_volt.voltage_count = 1;
+            auto& ov_entry = pstates.over_volt.voltages[0];
+            ov_entry.domain = domain;
+            ov_entry.volt_delta.value = raw_new_value;
+        }
+
+    }
+
+    pstates.clock_count = clock_count;
+    pstates.state_count = 1;
+
+    return true;
+}
+
+bool makeNewPowerStatus(const GpuOverclockDefinitionMap& overclockDefinitions, const GpuOverclockProfile& old_profile, const NvidiaGPUDataset& dataset, NVIDIA_GPU_POWER_POLICIES_STATUS& powerStatus)
+{
+    const auto index = overclockDefinitions.find(GPU_OVERCLOCK_SETTING_AREA_POWER_LIMIT);
+    if (index != overclockDefinitions.end()) {
+        const auto new_value = index->second;
+        const auto old_setting = old_profile[GPU_OVERCLOCK_SETTING_AREA_POWER_LIMIT];
+        if (old_setting.editable && new_value <= old_setting.maxValue && new_value >= old_setting.minValue) {
+            powerStatus.count = 1;
+            powerStatus.entries[0].power = static_cast<UINT32>(new_value * 1000);
+            powerStatus.entries[0].pstate = 0;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+#pragma endregion
+
 
 NvidiaGPU::NvidiaGPU(const NV_PHYSICAL_GPU_HANDLE handle) : handle(handle), GPUID(getGPUIDFromHandle(handle))
 {
@@ -106,18 +258,6 @@ bool NvidiaGPU::poll()
     return false;
 }
 
-template <typename F>
-std::string getNvidiaString(NV_PHYSICAL_GPU_HANDLE handle, F function)
-{
-    char name_buf[NVIDIA_SHORT_STRING_SIZE];
-
-    if (function(handle, name_buf) != NVAPI_OK) {
-        name_buf[0] = '\0';
-    }
-
-    return std::string(name_buf);
-}
-
 std::string NvidiaGPU::getName() const
 {
     return getNvidiaString(handle, NVIDIA_RAW_GetFullName);
@@ -139,7 +279,7 @@ std::string NvidiaGPU::getSerialNumber() const
 
 float NvidiaGPU::getVoltage() const
 {
-    if (this->dataset && this->dataset->voltageDomainsStatus.count > 0) {
+    if (this->dataset) {
         for (unsigned int i = 0; i < this->dataset->voltageDomainsStatus.count; i++) {
             if (this->dataset->voltageDomainsStatus.entries[i].voltage_domain == 0) {
                 return this->dataset->voltageDomainsStatus.entries[i].current_voltage / 1'000'000.0f;
@@ -151,7 +291,7 @@ float NvidiaGPU::getVoltage() const
 
 float NvidiaGPU::getTemperature() const
 {
-    if (this->dataset && this->dataset->thermalSettings.count > 0) {
+    if (this->dataset) {
         for (unsigned int i = 0; i < this->dataset->thermalSettings.count; i++) {
             if (this->dataset->thermalSettings.sensor[i].target == NVIDIA_THERMAL_TARGET_GPU) {
                 return static_cast<float>(this->dataset->thermalSettings.sensor[i].current_temp);
@@ -214,23 +354,10 @@ std::unique_ptr<GpuClocks> NvidiaGPU::getBaseClocks() const
 {
     return this->getClocks(NVIDIA_CLOCK_FREQUENCY_TYPE_BASE, true);
 }
+
 std::unique_ptr<GpuClocks> NvidiaGPU::getBoostClocks() const
 {
     return this->getClocks(NVIDIA_CLOCK_FREQUENCY_TYPE_BOOST, true);
-}
-
-
-auto get_best_pstate_index(NVIDIA_GPU_PSTATES20_V2 const& pstates)
-{
-    auto best_pstate_index = 0u;
-    auto best_pstate_state = UINT_MAX;
-    for (auto i = 0u; i < pstates.state_count; i++) {
-        if (pstates.states[i].state_num < best_pstate_state) {
-            best_pstate_index = i;
-            best_pstate_state = pstates.states[i].state_num;
-        }
-    }
-    return best_pstate_index;
 }
 
 std::unique_ptr<GpuOverclockProfile> NvidiaGPU::getOverclockProfile() const
@@ -240,7 +367,7 @@ std::unique_ptr<GpuOverclockProfile> NvidiaGPU::getOverclockProfile() const
     const auto& best_pstate = this->dataset->pstates20.states[best_pstate_index];
 
     const auto fetcher = [&](auto i) {
-        return GpuOverclockSetting(best_pstate.clocks[i].freq_delta, (best_pstate.flags & 1));
+        return GpuOverclockSetting(best_pstate.clocks[i].freq_delta, static_cast<bool>(best_pstate.flags & 1));
     };
 
     auto gpu_voltage_domain = UINT_MAX;
@@ -268,18 +395,15 @@ std::unique_ptr<GpuOverclockProfile> NvidiaGPU::getOverclockProfile() const
         const auto& over_volt = this->dataset->pstates20.over_volt;
         for (auto i = 0u; i < over_volt.voltage_count; i++) {
             if (over_volt.voltages[i].domain == gpu_voltage_domain) {
-                profile->overvolt = GpuOverclockSetting(over_volt.voltages[i].volt_delta, (over_volt.voltages[i].flags & 1));
+                profile->overvolt = GpuOverclockSetting(over_volt.voltages[i].volt_delta, static_cast<bool>(over_volt.voltages[i].flags & 1));
             }
         }
     }
 
-    return profile;
-}
+    auto powerLimit = getPowerLimit(this->dataset->powerPoliciesInfo, this->dataset->powerPoliciesStatus);
+    profile->powerLimit = GpuOverclockSetting(powerLimit, powerLimit.val_max > 0);
 
-auto getUsageForSystem(const NVIDIA_DYNAMIC_PSTATES_SYSTEM system, const NVIDIA_DYNAMIC_PSTATES& pstates)
-{
-    const auto state = pstates.pstates[system];
-    return state.present ? state.value : -1.0f;
+    return profile;
 }
 
 std::unique_ptr<GpuUsage> NvidiaGPU::getUsage() const
@@ -304,87 +428,38 @@ bool NvidiaGPU::setOverclock(const GpuOverclockDefinitionMap& overclockDefinitio
     }
 
     const auto old_profile = this->getOverclockProfile();
-    const auto overvolt_count = overclockDefinitions.find(GPU_OVERCLOCK_SETTING_AREA_OVERVOLT) != overclockDefinitions.end() ? 1 : 0;
-    const auto clock_count = overclockDefinitions.size() - overvolt_count;
 
     NVIDIA_GPU_PSTATES20_V2 pstates;
     REINIT_NVIDIA_STRUCT(pstates);
+    NVIDIA_GPU_POWER_POLICIES_STATUS powerStatus;
+    REINIT_NVIDIA_STRUCT(powerStatus);
+    
+    auto overclockAttempted = false;
+    auto overclockSuccess = true;
 
-    const UINT32 pstate_num = 0;
-    pstates.clock_count = clock_count;
-    pstates.state_count = 1;
-    auto& state = pstates.states[0];
-    state.state_num = pstate_num;
+    auto loadWithMethod = [&](auto& dataStruct, auto method) {
+        return method(overclockDefinitions, *old_profile, *this->dataset, dataStruct);
+    };
 
-    int clock = 0;
+    auto overclockIfValid = [&](auto& dataStruct, bool valid, auto rawMethod) {
+        if (valid) {
+            overclockAttempted = true;
+            overclockSuccess &= (rawMethod(this->handle, &dataStruct) == NVAPI_OK);
+        }
+    };
 
-    for (const auto& var : overclockDefinitions) {
-        bool is_clock = true;
-        auto domain = UINT_MAX;
-        const auto new_value = var.second;
-        const auto raw_new_value = static_cast<UINT32>(new_value * 1000);
+    if (loadWithMethod(pstates, makeNewPstates20) && loadWithMethod(powerStatus, makeNewPowerStatus)) {
+        overclockIfValid(pstates, (pstates.clock_count > 0 || pstates.over_volt.voltage_count > 0), NVIDIA_RAW_SetPstates20);
+        overclockIfValid(powerStatus, powerStatus.count > 0, NVIDIA_RAW_GpuClientPowerPoliciesSetStatus);
 
-        const auto old_setting = old_profile->operator[](var.first);
-        if (!(old_setting.editable && new_value <= old_setting.maxValue && new_value >= old_setting.minValue)) {
-            return false;
+        if (overclockAttempted) {
+            this->poll();
         }
 
-        if (var.first != GPU_OVERCLOCK_SETTING_AREA_OVERVOLT) {
-            switch (var.first) {
-            case GPU_OVERCLOCK_SETTING_AREA_CORE:
-                domain = NVIDIA_CLOCK_SYSTEM_GPU;
-                break;
-            case GPU_OVERCLOCK_SETTING_AREA_MEMORY:
-                domain = NVIDIA_CLOCK_SYSTEM_MEMORY;
-                break;
-            case GPU_OVERCLOCK_SETTING_AREA_SHADER:
-                domain = NVIDIA_CLOCK_SYSTEM_SHADER;
-                break;
-            default:
-                return false;
-            }
-
-            is_clock = true;
-        } else {
-            is_clock = false;
-            for (auto i = 0u; i < this->dataset->pstates20.state_count; i++) {
-                if (this->dataset->pstates20.states[i].state_num != pstate_num) {
-                    continue;
-                }
-
-                for (auto j = 0u; j < this->dataset->pstates20.clock_count; j++) {
-                    if (this->dataset->pstates20.states[i].clocks[j].domain == NVIDIA_CLOCK_SYSTEM_GPU &&
-                        this->dataset->pstates20.states[i].clocks[j].type == 1) {
-                        domain = this->dataset->pstates20.states[i].clocks[j].voltage_domain;
-                    }
-                }
-            }
-        }
-
-        if (domain == INT_MAX) {
-            return false;
-        }
-
-        if (is_clock) {
-            auto& clock_entry = state.clocks[clock++];
-            clock_entry.domain = domain;
-            clock_entry.freq_delta.value = raw_new_value;
-        } else {
-            pstates.over_volt.voltage_count = 1;
-            auto& ov_entry = pstates.over_volt.voltages[0];
-            ov_entry.domain = domain;
-            ov_entry.volt_delta.value = raw_new_value;
-        }
-
+        return overclockAttempted && overclockSuccess;
     }
 
-    if (NVIDIA_RAW_SetPstates20(this->handle, &pstates) == NVAPI_OK) {
-        this->poll();
-        return true;
-    } 
-    
     return false;
-    
 }
 
 }

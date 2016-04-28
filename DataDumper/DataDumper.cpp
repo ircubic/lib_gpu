@@ -29,7 +29,7 @@ int debug()
     new_overclock[GPU_OVERCLOCK_SETTING_AREA_OVERVOLT] = 87;
     bool success = gpu->setOverclock(new_overclock);
     auto profile2 = get_overclock_profile();*/
-    //bool overclock_success = overclock(140, GPU_OVERCLOCK_SETTING_AREA_MEMORY);
+    bool overclock_success = overclock(0, GPU_OVERCLOCK_SETTING_AREA_POWER_LIMIT, 100);
 
     std::cout << "GPU Clock: " << clocks.coreClock << std::endl
         << "Mem Clock: " << clocks.memoryClock << std::endl

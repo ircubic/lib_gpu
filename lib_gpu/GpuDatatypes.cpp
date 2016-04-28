@@ -17,23 +17,28 @@ const GpuOverclockSetting& GpuOverclockProfile::operator[](GPU_OVERCLOCK_SETTING
         return this->shaderOverclock;
     case GPU_OVERCLOCK_SETTING_AREA_OVERVOLT:
         return this->overvolt;
+    case GPU_OVERCLOCK_SETTING_AREA_POWER_LIMIT:
+        return this->powerLimit;
     }
 
     return this->coreOverclock;
 }
 
-GpuOverclockSetting::GpuOverclockSetting()
+GpuOverclockSetting::GpuOverclockSetting() : GpuOverclockSetting(0.0, 0.0, 0.0, false)
 {
-    this->editable = false;
-    this->currentValue = this->maxValue = this->minValue = 0.0;
+}
+
+GpuOverclockSetting::GpuOverclockSetting(float min, float current, float max, bool editable)
+{
+    this->editable = editable;
+    this->minValue = min;
+    this->currentValue = current;
+    this->maxValue = max;
 }
 
 GpuOverclockSetting::GpuOverclockSetting(NVIDIA_DELTA_ENTRY const& delta, bool editable)
+    : GpuOverclockSetting(LIFT_UNIT(delta.val_min), LIFT_UNIT(delta.value), LIFT_UNIT(delta.val_max), editable)
 {
-    this->editable = editable;
-    this->currentValue = LIFT_UNIT(delta.value);
-    this->minValue = LIFT_UNIT(delta.val_min);
-    this->maxValue = LIFT_UNIT(delta.val_max);
 }
 
 }
