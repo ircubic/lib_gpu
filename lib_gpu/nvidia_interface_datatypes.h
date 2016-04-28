@@ -302,10 +302,16 @@ struct
 } pstates[8];
 NVIDIA_STRUCT_END
 
+/**
+ * The flags property contains two values, bit 0 is a presence bit, and the
+ * second-least significant byte contains the amount of entries:
+ * `count = (flags >> 8) & 0xFF`
+ */
 NVIDIA_STRUCT_BEGIN(NVIDIA_GPU_POWER_POLICIES_INFO, 1)
 struct
 {
-    UINT32 unknown[3];
+    UINT32 pstate; // Assumption
+    UINT32 unknown[2];
     UINT32 min_power;
     UINT32 unknown2[2];
     UINT32 default_power;
@@ -318,7 +324,7 @@ NVIDIA_STRUCT_END
 NVIDIA_STRUCT_BEGIN_EX(NVIDIA_GPU_POWER_POLICIES_STATUS, 1, count)
 struct
 {
-    UINT32 flags;
+    UINT32 pstate; // Assumption
     UINT32 unknown;
     UINT32 power;
     UINT32 unknown2;

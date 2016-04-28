@@ -217,8 +217,9 @@ std::ostream& operator<<(std::ostream &strm, const NVIDIA_GPU_POWER_POLICIES_INF
         for (auto i = 0u; i < 4; i++) {
             const auto& entry = p.entries[i];
             new_scope(strm, iendl, "Entry", i, [&]() {
+                strm << "Pstate:" << entry.pstate << iendl;
                 strm << "Unknown 1: ";
-                print_array(strm, entry.unknown, 3) << iendl;
+                print_array(strm, entry.unknown, 2) << iendl;
                 strm << "min_power: " << entry.min_power << iendl;
                 strm << "Unknown 2: ";
                 print_array(strm, entry.unknown2, 2) << iendl;
@@ -247,7 +248,7 @@ std::ostream& operator<<(std::ostream &strm, const NVIDIA_GPU_POWER_POLICIES_STA
             const auto& entry = p.entries[i];
             new_scope(strm, iendl, "Entry", i, [&]() {
                 strm << "flags: ";
-                print_hex(strm, entry.flags) << iendl;
+                print_hex(strm, entry.pstate) << iendl;
                 strm << "unknown: ";
                 print_hex(strm, entry.unknown) << iendl;
                 strm << "power: ";
