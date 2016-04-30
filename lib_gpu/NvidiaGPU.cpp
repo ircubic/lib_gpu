@@ -19,6 +19,8 @@ struct NvidiaGPUDataset
     NVIDIA_GPU_POWER_POLICIES_STATUS powerPoliciesStatus;
     NVIDIA_GPU_VOLTAGE_DOMAINS_STATUS voltageDomainsStatus;
     NVIDIA_GPU_THERMAL_SETTINGS_V2 thermalSettings;
+    NVIDIA_GPU_THERMAL_POLICIES_INFO_V2 thermalPoliciesInfo;
+    NVIDIA_GPU_THERMAL_POLICIES_STATUS_V2 thermalPoliciesStatus;
 };
 
 #pragma region Data loading helpers
@@ -59,6 +61,8 @@ SIMPLE_NVIDIA_CALL(GPU_PSTATES20_V2, NVIDIA_RAW_GetPstates20);
 SIMPLE_NVIDIA_CALL(GPU_POWER_POLICIES_INFO, NVIDIA_RAW_GpuClientPowerPoliciesGetInfo);
 SIMPLE_NVIDIA_CALL(GPU_POWER_POLICIES_STATUS, NVIDIA_RAW_GpuClientPowerPoliciesGetStatus);
 SIMPLE_NVIDIA_CALL(GPU_VOLTAGE_DOMAINS_STATUS, NVIDIA_RAW_GpuGetVoltageDomainsStatus);
+SIMPLE_NVIDIA_CALL(GPU_THERMAL_POLICIES_INFO_V2, NVIDIA_RAW_GpuClientThermalPoliciesGetInfo);
+SIMPLE_NVIDIA_CALL(GPU_THERMAL_POLICIES_STATUS_V2, NVIDIA_RAW_GpuClientThermalPoliciesGetStatus);
 
 #pragma endregion
 
@@ -85,22 +89,44 @@ std::string getNvidiaString(NV_PHYSICAL_GPU_HANDLE handle, F function)
     return std::string(name_buf);
 }
 
-NVIDIA_DELTA_ENTRY getPowerLimit(const NVIDIA_GPU_POWER_POLICIES_INFO& info, const NVIDIA_GPU_POWER_POLICIES_STATUS& status, unsigned pstate = 0)
+GpuOverclockSetting getPowerLimit(const NVIDIA_GPU_POWER_POLICIES_INFO& info, const NVIDIA_GPU_POWER_POLICIES_STATUS& status, unsigned pstate = 0)
 {
     // We make a slightly bold assumption that info and status have the same entries
     for (auto i = 0u; i < status.count; i++) {
         const auto& statusEntry = status.entries[i];
         const auto& infoEntry = info.entries[i];
         if (statusEntry.pstate == pstate) {
-            return NVIDIA_DELTA_ENTRY{
-                static_cast<INT32>(statusEntry.power),
-                static_cast<INT32>(infoEntry.min_power),
-                static_cast<INT32>(infoEntry.max_power)
+            return GpuOverclockSetting{
+                static_cast<float>(infoEntry.min_power) / 1000.0f,
+                static_cast<float>(statusEntry.power) / 1000.0f,
+                static_cast<float>(infoEntry.max_power) / 1000.0f,
+                infoEntry.max_power > 0
             };
         }
     }
 
     return {};
+}
+
+GpuOverclockSetting getThermalLimit(const NVIDIA_GPU_THERMAL_POLICIES_INFO_V2& info, const NVIDIA_GPU_THERMAL_POLICIES_STATUS_V2& status, NVIDIA_THERMAL_CONTROLLER controller = NVIDIA_THERMAL_CONTROLLER_GPU_INTERNAL)
+{
+    // Again assuming that info and status wouldn't report on different values
+    for (auto i = 0u; i < status.count; i++) {
+        const auto& statusEntry = status.entries[i];
+        const auto& infoEntry = info.entries[i];
+
+        if (statusEntry.controller == controller) {
+            // Thermal policy values are multiples of 256
+            return GpuOverclockSetting{
+                infoEntry.min / 256.0f,
+                statusEntry.value / 256.0f,
+                infoEntry.max / 256.0f,
+                infoEntry.max > 0
+            };
+        }
+    }
+
+    return{};
 }
 
 auto get_best_pstate_index(NVIDIA_GPU_PSTATES20_V2 const& pstates)
@@ -249,7 +275,9 @@ bool NvidiaGPU::poll()
         loadGPU_POWER_POLICIES_INFO(this->handle, &newDataset->powerPoliciesInfo) &&
         loadGPU_POWER_POLICIES_STATUS(this->handle, &newDataset->powerPoliciesStatus) &&
         loadGPU_VOLTAGE_DOMAINS_STATUS(this->handle, &newDataset->voltageDomainsStatus) &&
-        loadGPU_THERMAL_SETTINGS_V2(this->handle, &newDataset->thermalSettings)
+        loadGPU_THERMAL_SETTINGS_V2(this->handle, &newDataset->thermalSettings) &&
+        loadGPU_THERMAL_POLICIES_INFO_V2(this->handle, &newDataset->thermalPoliciesInfo) &&
+        loadGPU_THERMAL_POLICIES_STATUS_V2(this->handle, &newDataset->thermalPoliciesStatus)
         ) {
         this->dataset = std::move(newDataset);
         return true;
@@ -400,8 +428,8 @@ std::unique_ptr<GpuOverclockProfile> NvidiaGPU::getOverclockProfile() const
         }
     }
 
-    auto powerLimit = getPowerLimit(this->dataset->powerPoliciesInfo, this->dataset->powerPoliciesStatus);
-    profile->powerLimit = GpuOverclockSetting(powerLimit, powerLimit.val_max > 0);
+    profile->powerLimit = getPowerLimit(this->dataset->powerPoliciesInfo, this->dataset->powerPoliciesStatus);
+    profile->thermalLimit = getThermalLimit(this->dataset->thermalPoliciesInfo, this->dataset->thermalPoliciesStatus);
 
     return profile;
 }

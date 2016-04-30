@@ -58,13 +58,13 @@ int debug()
 
     std::cout << std::is_pod<GpuOverclockProfile>::value << std::endl;
 
-    NVIDIA_GPU_POWER_POLICIES_INFO p;
+    NVIDIA_GPU_THERMAL_POLICIES_INFO_V2 p;
     REINIT_NVIDIA_STRUCT(p);
-    NV_ASSERT(NVIDIA_RAW_GpuClientPowerPoliciesGetInfo(handle, &p));
+    NV_ASSERT(NVIDIA_RAW_GpuClientThermalPoliciesGetInfo(handle, &p));
 
-    NVIDIA_GPU_POWER_POLICIES_STATUS p_s;
+    NVIDIA_GPU_THERMAL_POLICIES_STATUS_V2 p_s;
     REINIT_NVIDIA_STRUCT(p_s);
-    NV_ASSERT(NVIDIA_RAW_GpuClientPowerPoliciesGetStatus(handle, &p_s));
+    NV_ASSERT(NVIDIA_RAW_GpuClientThermalPoliciesGetStatus(handle, &p_s));
 
     NVIDIA_GPU_PSTATES20_V2 pstates;
     REINIT_NVIDIA_STRUCT(pstates);

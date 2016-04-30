@@ -382,10 +382,30 @@ struct
 } sensor[3];
 NVIDIA_STRUCT_END
 
-#pragma endregion
+// Thermal policy values are stored as multiples of 256, not 1000 like other values.
+NVIDIA_STRUCT_BEGIN(NVIDIA_GPU_THERMAL_POLICIES_INFO_V2, 2)
+struct
+{
+    UINT32 controller;
+    UINT32 unknown;
+    INT32 min;
+    INT32 default;
+    INT32 max;
+    /// Bit zero set indicates thermal priority
+    UINT32 defaultFlags;
+} entries[4];
+NVIDIA_STRUCT_END
 
-#pragma region Structure printers
-
+// Thermal policy values are stored as multiples of 256, not 1000 like other values.
+NVIDIA_STRUCT_BEGIN_EX(NVIDIA_GPU_THERMAL_POLICIES_STATUS_V2, 2, count)
+struct
+{
+    UINT32 controller;
+    UINT32 value;
+    /// Bit zero set indicates thermal priority
+    UINT32 flags;
+} entries[4];
+NVIDIA_STRUCT_END
 
 #pragma endregion
 }

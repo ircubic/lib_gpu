@@ -14,7 +14,8 @@ extern "C" {
         GPU_OVERCLOCK_SETTING_AREA_MEMORY,
         GPU_OVERCLOCK_SETTING_AREA_SHADER,
         GPU_OVERCLOCK_SETTING_AREA_OVERVOLT,
-        GPU_OVERCLOCK_SETTING_AREA_POWER_LIMIT
+        GPU_OVERCLOCK_SETTING_AREA_POWER_LIMIT,
+        GPU_OVERCLOCK_SETTING_AREA_THERMAL_LIMIT,
     };
 
     struct GpuOverclockSetting
@@ -26,7 +27,7 @@ extern "C" {
 #ifdef __cplusplus
         GpuOverclockSetting();
         GpuOverclockSetting(float min, float current, float max, bool editable = false);
-        GpuOverclockSetting(NVIDIA_DELTA_ENTRY const& delta, const bool editable = false);
+        GpuOverclockSetting(NVIDIA_DELTA_ENTRY const& delta, bool editable = false);
 #endif
     };
 
@@ -40,6 +41,7 @@ extern "C" {
         GpuOverclockSetting shaderOverclock;
         GpuOverclockSetting overvolt;
         GpuOverclockSetting powerLimit;
+        GpuOverclockSetting thermalLimit;
     };
 
     struct GpuUsage
