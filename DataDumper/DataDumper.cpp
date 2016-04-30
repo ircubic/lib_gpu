@@ -37,7 +37,8 @@ int debug()
         << "Voltage: " << gpu->getVoltage() << "mV" << std::endl
         << "Temp: " << gpu->getTemperature() << "C" << std::endl
         << "GPUID: " << gpu->getGPUID() << std::endl
-        << "Serial Number: " << gpu->getSerialNumber() << std::endl;
+        << "Serial Number: " << gpu->getSerialNumber() << std::endl
+        << "Temp limit prioritized: " << gpu->isTemperatureLimitPrioritized() << std::endl;
 
     char buffer[1024];
     memset(buffer, 0, 1024);

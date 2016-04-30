@@ -115,7 +115,7 @@ GpuOverclockSetting getThermalLimit(const NVIDIA_GPU_THERMAL_POLICIES_INFO_V2& i
         const auto& statusEntry = status.entries[i];
         const auto& infoEntry = info.entries[i];
 
-        if (statusEntry.controller == controller) {
+        if (static_cast<NVIDIA_THERMAL_CONTROLLER>(statusEntry.controller) == controller) {
             // Thermal policy values are multiples of 256
             return GpuOverclockSetting{
                 infoEntry.min / 256.0f,
@@ -327,6 +327,20 @@ float NvidiaGPU::getTemperature() const
         }
     }
     return -1;
+}
+
+bool NvidiaGPU::isTemperatureLimitPrioritized() const
+{
+    if (this->dataset) {
+        for (auto i = 0u; i < this->dataset->thermalPoliciesStatus.count; i++) {
+            const auto& status = this->dataset->thermalPoliciesStatus.entries[i];
+            if (status.controller == NVIDIA_THERMAL_CONTROLLER_GPU_INTERNAL) {
+                return static_cast<bool>(status.flags & 1);
+            }
+        }
+    }
+
+    return true;
 }
 
 unsigned long NvidiaGPU::getGPUID() const

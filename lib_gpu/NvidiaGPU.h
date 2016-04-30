@@ -31,6 +31,7 @@ public:
     std::string getSerialNumber() const;
     float getVoltage() const;
     float getTemperature() const;
+    bool isTemperatureLimitPrioritized() const;
     unsigned long getGPUID() const;
 
     std::unique_ptr<GpuClocks> getClocks() const;
