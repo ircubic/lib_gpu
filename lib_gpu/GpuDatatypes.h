@@ -31,6 +31,12 @@ extern "C" {
 #endif
     };
 
+    struct GpuOverclockFlag
+    {
+        bool editable;
+        bool value;
+    };
+
     struct GpuOverclockProfile
     {
 #ifdef __cplusplus
@@ -42,6 +48,7 @@ extern "C" {
         GpuOverclockSetting overvolt;
         GpuOverclockSetting powerLimit;
         GpuOverclockSetting thermalLimit;
+        GpuOverclockFlag thermalLimitPriority;
     };
 
     struct GpuUsage

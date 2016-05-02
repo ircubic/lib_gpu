@@ -105,10 +105,10 @@ GpuOverclockSetting getPowerLimit(const NVIDIA_GPU_POWER_POLICIES_INFO& info, co
         }
     }
 
-    return {};
+    return{};
 }
 
-GpuOverclockSetting getThermalLimit(const NVIDIA_GPU_THERMAL_POLICIES_INFO_V2& info, const NVIDIA_GPU_THERMAL_POLICIES_STATUS_V2& status, NVIDIA_THERMAL_CONTROLLER controller = NVIDIA_THERMAL_CONTROLLER_GPU_INTERNAL)
+std::tuple<GpuOverclockSetting, GpuOverclockFlag> getThermalLimit(const NVIDIA_GPU_THERMAL_POLICIES_INFO_V2& info, const NVIDIA_GPU_THERMAL_POLICIES_STATUS_V2& status, NVIDIA_THERMAL_CONTROLLER controller = NVIDIA_THERMAL_CONTROLLER_GPU_INTERNAL)
 {
     // Again assuming that info and status wouldn't report on different values
     for (auto i = 0u; i < status.count; i++) {
@@ -117,11 +117,17 @@ GpuOverclockSetting getThermalLimit(const NVIDIA_GPU_THERMAL_POLICIES_INFO_V2& i
 
         if (static_cast<NVIDIA_THERMAL_CONTROLLER>(statusEntry.controller) == controller) {
             // Thermal policy values are multiples of 256
-            return GpuOverclockSetting{
-                infoEntry.min / 256.0f,
-                statusEntry.value / 256.0f,
-                infoEntry.max / 256.0f,
-                infoEntry.max > 0
+            return{
+                GpuOverclockSetting{
+                    infoEntry.min / 256.0f,
+                    statusEntry.value / 256.0f,
+                    infoEntry.max / 256.0f,
+                    infoEntry.max > 0
+                },
+                GpuOverclockFlag{
+                    static_cast<bool>(infoEntry.defaultFlags & 1),
+                    static_cast<bool>(statusEntry.flags & 1)
+                }
             };
         }
     }
@@ -148,6 +154,11 @@ auto getUsageForSystem(const NVIDIA_DYNAMIC_PSTATES_SYSTEM system, const NVIDIA_
     return state.present ? state.value : -1.0f;
 }
 
+constexpr bool isNewValueValidForSetting(const GpuOverclockSetting& setting, const float newValue)
+{
+    return (setting.editable && newValue <= setting.maxValue && newValue >= setting.minValue);
+}
+
 bool makeNewPstates20(const GpuOverclockDefinitionMap& overclockDefinitions, const GpuOverclockProfile& old_profile, const NvidiaGPUDataset& dataset, NVIDIA_GPU_PSTATES20_V2& pstates)
 {
     const auto overvolt_count = overclockDefinitions.find(GPU_OVERCLOCK_SETTING_AREA_OVERVOLT) != overclockDefinitions.end() ? 1u : 0u;
@@ -167,7 +178,7 @@ bool makeNewPstates20(const GpuOverclockDefinitionMap& overclockDefinitions, con
         const auto area = var.first;
 
         const auto old_setting = old_profile[area];
-        if (!(old_setting.editable && new_value <= old_setting.maxValue && new_value >= old_setting.minValue)) {
+        if (!isNewValueValidForSetting(old_setting, new_value)) {
             return false;
         }
 
@@ -235,15 +246,56 @@ bool makeNewPowerStatus(const GpuOverclockDefinitionMap& overclockDefinitions, c
     if (index != overclockDefinitions.end()) {
         const auto new_value = index->second;
         const auto old_setting = old_profile[GPU_OVERCLOCK_SETTING_AREA_POWER_LIMIT];
-        if (old_setting.editable && new_value <= old_setting.maxValue && new_value >= old_setting.minValue) {
-            powerStatus.count = 1;
-            powerStatus.entries[0].power = static_cast<UINT32>(new_value * 1000);
-            powerStatus.entries[0].pstate = 0;
-            return true;
+        if (!isNewValueValidForSetting(old_setting, new_value)) {
+            return false;
         }
+
+        powerStatus.count = 1;
+        powerStatus.entries[0].power = static_cast<UINT32>(new_value * 1000);
+        powerStatus.entries[0].pstate = 0;
     }
 
-    return false;
+    return true;
+}
+
+bool makeNewThermalStatus(const GpuOverclockDefinitionMap& overclockDefinitions, const GpuOverclockProfile& old_profile, NVIDIA_GPU_THERMAL_POLICIES_STATUS_V2& thermalStatus, const bool prioritizeThermalLimit)
+{
+    const auto index = overclockDefinitions.find(GPU_OVERCLOCK_SETTING_AREA_THERMAL_LIMIT);
+    const auto hasLimitChange = (index != overclockDefinitions.end());
+    const auto hasPriorityChange = (old_profile.thermalLimitPriority.value != prioritizeThermalLimit);
+
+    // We default to old values, because we require both a limit value and a
+    // value for the priority flag in the NVIDIA API call, and the caller might
+    // not be requesting to set both.
+    auto newThermalLimit = old_profile.thermalLimit.currentValue;
+    auto shouldPrioritizeThermal = old_profile.thermalLimitPriority.value;
+    auto shouldSet = false;
+
+    if (hasLimitChange) {
+        const auto old_setting = old_profile[GPU_OVERCLOCK_SETTING_AREA_THERMAL_LIMIT];
+        const auto new_value = index->second;
+        if (!isNewValueValidForSetting(old_setting, new_value)) {
+            return false;
+        }
+
+        newThermalLimit = new_value;
+        shouldSet = true;
+    }
+
+    if (hasPriorityChange && old_profile.thermalLimitPriority.editable) {
+        shouldSet = true;
+        shouldPrioritizeThermal = prioritizeThermalLimit;
+    }
+
+    if (shouldSet) {
+        thermalStatus.count = 1;
+        auto& entry = thermalStatus.entries[0];
+        entry.controller = NVIDIA_THERMAL_CONTROLLER_GPU_INTERNAL;
+        entry.value = static_cast<UINT32>(newThermalLimit*256.0);
+        entry.flags = shouldPrioritizeThermal ? 1 : 0;
+    }
+
+    return true;
 }
 
 #pragma endregion
@@ -329,20 +381,6 @@ float NvidiaGPU::getTemperature() const
     return -1;
 }
 
-bool NvidiaGPU::isTemperatureLimitPrioritized() const
-{
-    if (this->dataset) {
-        for (auto i = 0u; i < this->dataset->thermalPoliciesStatus.count; i++) {
-            const auto& status = this->dataset->thermalPoliciesStatus.entries[i];
-            if (status.controller == NVIDIA_THERMAL_CONTROLLER_GPU_INTERNAL) {
-                return static_cast<bool>(status.flags & 1);
-            }
-        }
-    }
-
-    return true;
-}
-
 unsigned long NvidiaGPU::getGPUID() const
 {
     return this->GPUID;
@@ -374,7 +412,7 @@ std::unique_ptr<GpuClocks> NvidiaGPU::getClocks(NVIDIA_CLOCK_FREQUENCY_TYPE type
         }
         return -1;
     };
-    
+
     return std::unique_ptr<GpuClocks>{new GpuClocks{
         fetcher(NVIDIA_CLOCK_SYSTEM_GPU),
         fetcher(NVIDIA_CLOCK_SYSTEM_MEMORY),
@@ -443,7 +481,9 @@ std::unique_ptr<GpuOverclockProfile> NvidiaGPU::getOverclockProfile() const
     }
 
     profile->powerLimit = getPowerLimit(this->dataset->powerPoliciesInfo, this->dataset->powerPoliciesStatus);
-    profile->thermalLimit = getThermalLimit(this->dataset->thermalPoliciesInfo, this->dataset->thermalPoliciesStatus);
+    auto thermalTuple = getThermalLimit(this->dataset->thermalPoliciesInfo, this->dataset->thermalPoliciesStatus);
+    profile->thermalLimit = std::get<0>(thermalTuple);
+    profile->thermalLimitPriority = std::get<1>(thermalTuple);
 
     return profile;
 }
@@ -461,7 +501,7 @@ std::unique_ptr<GpuUsage> NvidiaGPU::getUsage() const
     return nullptr;
 }
 
-bool NvidiaGPU::setOverclock(const GpuOverclockDefinitionMap& overclockDefinitions) 
+bool NvidiaGPU::setOverclock(const GpuOverclockDefinitionMap& overclockDefinitions, const bool prioritizeThermalLimit)
 {
     if (!this->dataset) {
         if (!this->poll()) {
@@ -475,7 +515,9 @@ bool NvidiaGPU::setOverclock(const GpuOverclockDefinitionMap& overclockDefinitio
     REINIT_NVIDIA_STRUCT(pstates);
     NVIDIA_GPU_POWER_POLICIES_STATUS powerStatus;
     REINIT_NVIDIA_STRUCT(powerStatus);
-    
+    NVIDIA_GPU_THERMAL_POLICIES_STATUS_V2 thermalStatus;
+    REINIT_NVIDIA_STRUCT(thermalStatus);
+
     auto overclockAttempted = false;
     auto overclockSuccess = true;
 
@@ -490,9 +532,11 @@ bool NvidiaGPU::setOverclock(const GpuOverclockDefinitionMap& overclockDefinitio
         }
     };
 
-    if (loadWithMethod(pstates, makeNewPstates20) && loadWithMethod(powerStatus, makeNewPowerStatus)) {
+    if (loadWithMethod(pstates, makeNewPstates20) && loadWithMethod(powerStatus, makeNewPowerStatus) &&
+        makeNewThermalStatus(overclockDefinitions, *old_profile, thermalStatus, prioritizeThermalLimit)) {
         overclockIfValid(pstates, (pstates.clock_count > 0 || pstates.over_volt.voltage_count > 0), NVIDIA_RAW_SetPstates20);
         overclockIfValid(powerStatus, powerStatus.count > 0, NVIDIA_RAW_GpuClientPowerPoliciesSetStatus);
+        overclockIfValid(thermalStatus, thermalStatus.count > 0, NVIDIA_RAW_GpuClientThermalPoliciesSetStatus);
 
         if (overclockAttempted) {
             this->poll();

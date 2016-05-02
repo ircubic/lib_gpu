@@ -31,7 +31,6 @@ public:
     std::string getSerialNumber() const;
     float getVoltage() const;
     float getTemperature() const;
-    bool isTemperatureLimitPrioritized() const;
     unsigned long getGPUID() const;
 
     std::unique_ptr<GpuClocks> getClocks() const;
@@ -41,7 +40,7 @@ public:
     std::unique_ptr<GpuOverclockProfile> getOverclockProfile() const;
     std::unique_ptr<GpuUsage> getUsage() const;
 
-    bool setOverclock(const GpuOverclockDefinitionMap& overclockDefinitions);
+    bool setOverclock(const GpuOverclockDefinitionMap& overclockDefinitions, const bool prioritizeThermalLimit = false);
 
 private:
     const NV_PHYSICAL_GPU_HANDLE handle;
